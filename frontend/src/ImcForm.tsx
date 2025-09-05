@@ -1,6 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
-const API_URL = import.meta.env.VITE_API_URL;
+import.meta.env.VITE_API_URL;
 
 interface ImcResult {
   imc: number;
