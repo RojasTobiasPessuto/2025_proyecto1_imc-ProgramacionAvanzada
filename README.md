@@ -25,7 +25,8 @@ Con el objetivo de comprobar el correcto funcionamiento del sistema de forma loc
 La aplicación respondió de manera adecuada, confirmando la correcta interacción entre ambos componentes en entorno local.
 
 ## Despliegue de frontend a Vercel
-Para el despliegue del frontend se optó por la plataforma Vercel, siguiendo los pasos que se enumeran a continuación:
+Para el despliegue del frontend se optó por la plataforma Vercel ya que su plan gratuito cubre las necesidades de  un proyecto academico,nos parecio fácil de usar y además  un compañero ya tenia experiencia utilizándolo.
+ Para el despliegue seguimos los pasos que se enumeran a continuación:
 
 Se vinculó el repositorio en la plataforma.
 
@@ -45,12 +46,14 @@ Modificación del código en los archivos main.tsx e ImcForm.tsx, incorporando l
 
 
 ## Despliegue de backend a Render
-El despliegue del backend se realizó en la plataforma Render. El procedimiento contempló:
+El despliegue del backend se realizó en la plataforma Render ya que su plan gratuito permite desplegar el back-end y la base de datos sin costos, nos resultó sencillo de usar y además ofrece buena confiabilidad para mantener el proyecto accesible.
+El procedimiento contempló:
 
 Vinculación del repositorio con Render.
 
 Configuración del servicio para que se enfocara en la carpeta backend.
 
+## Problemas 
 Se presentó inicialmente un problema: Render estaba configurado por defecto para desplegar la rama main, mientras que los cambios efectuados se encontraban en la rama test.
 Tras identificar esta situación, se ajustó la configuración para que el servicio utilizara la rama correcta. Una vez realizado el cambio, el despliegue funcionó correctamente.
 
