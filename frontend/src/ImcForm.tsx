@@ -1,10 +1,13 @@
 import axios from "axios";
 import React, { useState } from "react";
+const API = import.meta.env.VITE_API_URL;
 
 interface ImcResult {
   imc: number;
   categoria: string;
 }
+
+
 
 function ImcForm() {
   const [altura, setAltura] = useState("");
@@ -25,7 +28,7 @@ function ImcForm() {
     }
 
     try {
-      const response = await axios.post("http://localhost:3000/imc/calcular", {
+      const response = await axios.post(`${API}/imc/calcular`, {
         altura: alturaNum,
         peso: pesoNum,
       });
