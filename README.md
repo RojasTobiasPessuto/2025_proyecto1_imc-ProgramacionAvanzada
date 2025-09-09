@@ -72,4 +72,4 @@ Se realizaron pruebas manuales sobre la aplicación desplegada, las cuales confi
 ## Obeso
 ![obeso](./images/obeso.png)
 ## Sobrepeso
-![sobrepeso](./images/sobrepeso.png)
+![sobrepeso](./images/sobrepeso.png) 
