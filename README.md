@@ -1,6 +1,5 @@
-##  Calculadora IMC
+1. Preparación inicial
 
-## Inicio
 En primera instancia, se procedió a clonar los repositorios provistos por el docente a cargo de la asignatura.
 Posteriormente, se creó un nuevo repositorio en GitHub con el nombre:
 
@@ -8,23 +7,30 @@ Posteriormente, se creó un nuevo repositorio en GitHub con el nombre:
 
 Finalmente, se subieron los archivos del proyecto a dicho repositorio.
 
-## Dependencias
+2. Instalación de dependencias
+
 Tanto en el backend como en el frontend, fue necesario instalar las dependencias iniciales mediante el siguiente comando:
 
-"npm install"
+npm install
 
-## Ejecución local de pruebas
+3. Ejecución local de pruebas
+
 Con el objetivo de comprobar el correcto funcionamiento del sistema de forma local, se abrieron dos terminales independientes:
 
-**Backend**
-"npm run start:dev"
+Backend
 
-**Frontend**
-"npm run dev"
+npm run start:dev
+
+
+Frontend
+
+npm run dev
+
 
 La aplicación respondió de manera adecuada, confirmando la correcta interacción entre ambos componentes en entorno local.
 
-## Despliegue de frontend a Vercel
+4. Despliegue del frontend en Vercel
+
 Para el despliegue del frontend se optó por la plataforma Vercel, siguiendo los pasos que se enumeran a continuación:
 
 Se vinculó el repositorio en la plataforma.
@@ -43,27 +49,18 @@ Creación del archivo .env en la carpeta frontend para alojar la URL de la API d
 
 Modificación del código en los archivos main.tsx e ImcForm.tsx, incorporando la llamada a la API.
 
+5. Despliegue del backend en Render
 
-## Despliegue de backend a Render
 El despliegue del backend se realizó en la plataforma Render. El procedimiento contempló:
 
 Vinculación del repositorio con Render.
 
 Configuración del servicio para que se enfocara en la carpeta backend.
 
-Se presentó inicialmente un problema: Render estaba configurado por defecto para desplegar la rama main, mientras que los cambios efectuados se encontraban en la rama test.
-Tras identificar esta situación, se ajustó la configuración para que el servicio utilizara la rama correcta. Una vez realizado el cambio, el despliegue funcionó correctamente.
+Se presentó inicialmente un inconveniente: Render estaba configurado por defecto para desplegar la rama main, mientras que los cambios efectuados se encontraban en la rama test.
+Tras identificar esta situación, se ajustó la configuración para que el servicio utilizara la rama correcta. Una vez realizado el cambio, el despliegue funcionó satisfactoriamente.
 
+6. Resultados obtenidos
 
-## Resultados obtenidos manualmente
 El sistema quedó desplegado con el frontend en Vercel y el backend en Render, funcionando de manera integrada.
 Se realizaron pruebas manuales sobre la aplicación desplegada, las cuales confirmaron el correcto funcionamiento de la solución propuesta.
-
-## Bajo peso
-![Bajo peso](./images/bajopeso.png)
-## Peso normal
-![normal](./images/normal.png)
-## Obeso
-![obeso](./images/obeso.png)
-## Sobrepeso
-![sobrepeso](./images/sobrepeso.png)
