@@ -1,14 +1,18 @@
-import { Controller, Post, Body, ValidationPipe } from '@nestjs/common';
-import { ImcService } from './imc.service';
-import { CalcularImcDto } from './dto/calcular-imc-dto';
+import { Controller, Post, Get, Body } from "@nestjs/common";
+import { ImcService } from "./imc.service";
+import { CalcularImcDto } from "./dto/calcular-imc-dto";
 
-
-@Controller('imc')
+@Controller("imc")
 export class ImcController {
   constructor(private readonly imcService: ImcService) {}
 
-  @Post('calcular')
-  calcular(@Body(ValidationPipe) data: CalcularImcDto) {
-    return this.imcService.calcularImc(data);
+  @Post("calcular")
+  async calcular(@Body() dto: CalcularImcDto) {
+    return this.imcService.calcularYGuardar(dto);
+  }
+
+  @Get("historial")
+  async historial() {
+    return this.imcService.listarHistorial();
   }
 }

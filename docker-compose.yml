@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: imc_user
+      POSTGRES_PASSWORD: imc_pass
+      POSTGRES_DB: db_imc   # 👈 acá cambio a "db_imc" como definiste en backend
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U imc_user -d db_imc || exit 1"] # 👈 mismo nombre
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

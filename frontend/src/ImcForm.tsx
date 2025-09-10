@@ -7,7 +7,12 @@ interface ImcResult {
   categoria: string;
 }
 
-function ImcForm() {
+
+interface ImcFormProps {
+  onSuccess: () => void;
+}
+
+function ImcForm({ onSuccess }: ImcFormProps) {
   const [altura, setAltura] = useState("");
   const [peso, setPeso] = useState("");
   const [resultado, setResultado] = useState<ImcResult | null>(null);
@@ -47,6 +52,7 @@ function ImcForm() {
       });
       setResultado(response.data);
       setErrores([]); // limpiar errores si todo salió bien
+      onSuccess(); // Notificar al padre para recargar el historial
     } catch (err) {
       setErrores([
         "Error al calcular el IMC. Verifica si el backend está corriendo.",
