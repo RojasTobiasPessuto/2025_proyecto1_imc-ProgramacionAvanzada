@@ -114,7 +114,7 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
                     {r.alturaM} m
                   </td>
                   <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
-                    {r.imc.toFixed(2)}
+                    <td>{Number(r.imc).toFixed(2)}</td>
                   </td>
                   <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
                     {r.categoria}
