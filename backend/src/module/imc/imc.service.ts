@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CalcularImcDto } from "./dto/calcular-imc-dto";
-import { Repository } from "typeorm";
+import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
 import { InjectRepository } from "@nestjs/typeorm";
 import { ImcRecord } from "./entities/imc-record.entity";
 
@@ -52,11 +52,29 @@ export class ImcService {
   }
 
   /**
-   * Devuelve todos los cálculos almacenados, ordenados del más reciente al más viejo
+   * Devuelve todos los cálculos almacenados, con opción de filtrar por rango de fechas
    */
-  async listarHistorial(): Promise<ImcRecord[]> {
-    return this.repo.find({
+  async listarHistorial(fechaInicio?: string, fechaFin?: string): Promise<ImcRecord[]> {
+    const where: any = {};
+    if (fechaInicio && fechaFin) {
+      where.createdAt = { $gte: fechaInicio, $lte: fechaFin };
+    } else if (fechaInicio) {
+      where.createdAt = { $gte: fechaInicio };
+    } else if (fechaFin) {
+      where.createdAt = { $lte: fechaFin };
+    }
+    // TypeORM usa Between, MoreThanOrEqual, LessThanOrEqual
+    const query: any = {
       order: { createdAt: "DESC" },
-    });
+    };
+    if (fechaInicio && fechaFin) {
+      query.where = { createdAt: Between(new Date(fechaInicio), new Date(fechaFin + 'T23:59:59')) };
+    } else if (fechaInicio) {
+      query.where = { createdAt: MoreThanOrEqual(new Date(fechaInicio)) };
+    } else if (fechaFin) {
+      query.where = { createdAt: LessThanOrEqual(new Date(fechaFin + 'T23:59:59')) };
+    }
+    return this.repo.find(query);
   }
+
 }

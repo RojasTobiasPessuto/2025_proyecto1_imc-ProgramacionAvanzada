@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body } from "@nestjs/common";
+import { Controller, Post, Get, Body, Query } from "@nestjs/common";
 import { ImcService } from "./imc.service";
 import { CalcularImcDto } from "./dto/calcular-imc-dto";
 
@@ -12,7 +12,10 @@ export class ImcController {
   }
 
   @Get("historial")
-  async historial() {
-    return this.imcService.listarHistorial();
+  async historial(
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string
+  ) {
+    return this.imcService.listarHistorial(fechaInicio, fechaFin);
   }
 }
