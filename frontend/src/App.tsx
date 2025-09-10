@@ -1,6 +1,4 @@
-
-
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ImcForm from './ImcForm';
 import ImcHistorial from './components/ImcHistorial';
@@ -8,7 +6,7 @@ import ImcHistorial from './components/ImcHistorial';
 const API = import.meta.env.VITE_API_URL;
 
 export interface ImcRecord {
-  id: string;
+  id: number;
   pesoKg: number;
   alturaM: number;
   imc: number;
@@ -16,56 +14,45 @@ export interface ImcRecord {
   createdAt: string;
 }
 
-
-function App() {
+export default function App() {
   const [records, setRecords] = useState<ImcRecord[]>([]);
   const [loading, setLoading] = useState(false);
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
 
-  const fetchHistorial = useCallback(async (fInicio?: string, fFin?: string) => {
+  const fetchRecords = async () => {
     setLoading(true);
     try {
-      let url = `${API}/imc/historial`;
-      const params: string[] = [];
-      if (fInicio) params.push(`fechaInicio=${fInicio}`);
-      if (fFin) params.push(`fechaFin=${fFin}`);
-      if (params.length > 0) url += `?${params.join("&")}`;
-      const res = await axios.get<ImcRecord[]>(url);
-      setRecords(res.data);
-    } catch (err) {
-      console.error('Error cargando historial', err);
+      const response = await axios.get(`${API}/imc/historial`);
+      setRecords(response.data);
+    } catch (error) {
+      console.error('Error fetching records:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
-
-  useEffect(() => {
-    fetchHistorial();
-  }, [fetchHistorial]);
-
-  const handleFiltrar = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchHistorial(fechaInicio, fechaFin);
   };
 
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
   return (
-    <div>
-      <ImcForm onSuccess={() => fetchHistorial(fechaInicio, fechaFin)} />
-      <form onSubmit={handleFiltrar} style={{ marginBottom: 16 }}>
-        <label>
-          Fecha inicio:
-          <input type="date" value={fechaInicio} onChange={e => setFechaInicio(e.target.value)} />
-        </label>
-        <label style={{ marginLeft: 12 }}>
-          Fecha fin:
-          <input type="date" value={fechaFin} onChange={e => setFechaFin(e.target.value)} />
-        </label>
-        <button type="submit" style={{ marginLeft: 12 }}>Filtrar</button>
-      </form>
-      <ImcHistorial records={records} loading={loading} />
+    <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1a1a3d] to-[#3a0ca3] flex items-center justify-center font-sans p-4 text-white">
+      <div className="w-full max-w-6xl space-y-8">
+        <header className="text-center">
+          <h1 className="text-5xl font-bold">Calculadora de IMC</h1>
+          <p className="text-slate-400 mt-2 text-lg">Organiza tu seguimiento de salud con estilo y eficiencia.</p>
+        </header>
+
+        {/* Sección del Formulario */}
+        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+          <ImcForm onSuccess={fetchRecords} />
+        </div>
+
+        {/* Sección del Historial */}
+        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+          <ImcHistorial records={records} loading={loading} />
+        </div>
+      </div>
     </div>
   );
 }
 
-export default App;
