@@ -102,26 +102,26 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredRecords.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
-                  <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-                    {new Date(r.createdAt).toLocaleDateString('es-ES')}
-                  </td>
-                  <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-                    {r.pesoKg} kg
-                  </td>
-                  <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-                    {r.alturaM} m
-                  </td>
-                  <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
-                    <td>{Number(r.imc).toFixed(2)}</td>
-                  </td>
-                  <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
-                    {r.categoria}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {filteredRecords.map((r) => (
+    <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {new Date(r.createdAt).toLocaleDateString('es-ES')}
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {r.pesoKg} kg
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {r.alturaM} m
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
+        {Number(r.imc).toFixed(2)}
+      </td>
+      <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
+        {r.categoria}
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">

@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
+
 const API = import.meta.env.VITE_API_URL;
 
 interface ImcResult {
@@ -9,6 +10,8 @@ interface ImcResult {
 
 interface ImcFormProps {
   onSuccess: () => void;
+  resultado: ImcResult | null;
+  setResultado: (r: ImcResult | null) => void;
 }
 
 // Icono de calculadora
@@ -23,14 +26,13 @@ const CalculatorIcon = () => (
   </svg>
 );
 
-function ImcForm({ onSuccess }: ImcFormProps) {
+function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
   const [altura, setAltura] = useState("");
   const [peso, setPeso] = useState("");
-  const [resultado, setResultado] = useState<ImcResult | null>(null);
   const [errores, setErrores] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  e.preventDefault();
 
     const alturaNum = parseFloat(altura);
     const pesoNum = parseFloat(peso);
@@ -57,20 +59,33 @@ function ImcForm({ onSuccess }: ImcFormProps) {
     }
 
     try {
-      const response = await axios.post(`${API}/imc/calcular`, {
-        altura: alturaNum,
-        peso: pesoNum,
-      });
-      setResultado(response.data);
-      setErrores([]); // limpiar errores si todo salió bien
-      onSuccess(); // Notificar al padre para recargar el historial
-    } catch (err) {
-      setErrores([
-        "Error al calcular el IMC. Verifica si el backend está corriendo.",
-      ]);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user_id = user.id;
+    if (!user_id) {
+      setErrores(['No hay usuario logueado.']);
       setResultado(null);
+      return;
     }
-  };
+
+      const response = await axios.post(`${API}/imc/calcular`, {
+      altura: alturaNum,
+      peso: pesoNum,
+      user_id,
+    });
+    setResultado(response.data); // Luego muestra el resultado
+    setErrores([]);
+    onSuccess(); // Primero recarga el historial
+
+    // Opcional: limpiar campos
+    // setAltura("");
+    // setPeso("");
+  } catch (err) {
+    setErrores([
+      "Error al calcular el IMC. Verifica si el backend está corriendo.",
+    ]);
+    setResultado(null);
+  }
+};
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -128,25 +143,25 @@ function ImcForm({ onSuccess }: ImcFormProps) {
 
       {/* Resultado */}
       <div className="flex items-center justify-center">
-        {resultado ? (
-          <div className="text-center bg-slate-800/50 p-6 rounded-lg w-full">
-            <p className="text-lg text-slate-300 mb-4">Tu resultado más reciente:</p>
-            <p className="text-6xl font-bold text-white my-2">{resultado.imc.toFixed(2)}</p>
-            <p className={`text-2xl font-semibold ${
-              resultado.categoria === 'Normal' ? 'text-green-400' :
-              resultado.categoria === 'Bajo peso' ? 'text-blue-400' :
-              resultado.categoria === 'Sobrepeso' ? 'text-yellow-400' :
-              resultado.categoria.includes('Obesidad') ? 'text-red-400' : 'text-slate-400'
-            }`}>
-              {resultado.categoria}
-            </p>
-          </div>
-        ) : (
-          <div className="text-center text-slate-400 p-6">
-            <p>El resultado de tu cálculo aparecerá aquí.</p>
-          </div>
-        )}
-      </div>
+  {resultado ? (
+    <div className="text-center bg-slate-800/50 p-6 rounded-lg w-full">
+      <p className="text-lg text-slate-300 mb-4">Tu resultado más reciente:</p>
+      <p className="text-6xl font-bold text-white my-2">{resultado.imc.toFixed(2)}</p>
+      <p className={`text-2xl font-semibold ${
+        resultado.categoria === 'Normal' ? 'text-green-400' :
+        resultado.categoria === 'Bajo peso' ? 'text-blue-400' :
+        resultado.categoria === 'Sobrepeso' ? 'text-yellow-400' :
+        resultado.categoria.includes('Obesidad') ? 'text-red-400' : 'text-slate-400'
+      }`}>
+        {resultado.categoria}
+      </p>
+    </div>
+  ) : (
+    <div className="text-center text-slate-400 p-6">
+      <p>El resultado de tu cálculo aparecerá aquí.</p>
+    </div>
+  )}
+</div>
     </div>
   );
 }

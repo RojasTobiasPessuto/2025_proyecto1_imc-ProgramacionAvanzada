@@ -1,6 +1,8 @@
 import { Controller, Post, Get, Body, Query } from "@nestjs/common";
 import { ImcService } from "./imc.service";
 import { CalcularImcDto } from "./dto/calcular-imc-dto";
+import { BadRequestException } from '@nestjs/common';
+
 
 @Controller("imc")
 export class ImcController {
@@ -12,10 +14,15 @@ export class ImcController {
   }
 
   @Get("historial")
-  async historial(
-    @Query('fechaInicio') fechaInicio?: string,
-    @Query('fechaFin') fechaFin?: string
-  ) {
-    return this.imcService.listarHistorial(fechaInicio, fechaFin);
+async historial(
+  @Query('user_id') user_id: string,
+  @Query('fechaInicio') fechaInicio?: string,
+  @Query('fechaFin') fechaFin?: string
+) {
+  const userIdNum = Number(user_id);
+  if (!user_id || isNaN(userIdNum)) {
+    throw new BadRequestException('user_id es requerido y debe ser un número');
   }
+  return this.imcService.listarHistorial(userIdNum, fechaInicio, fechaFin);
+}
 }

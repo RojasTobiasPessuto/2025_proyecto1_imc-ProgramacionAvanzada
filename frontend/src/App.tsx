@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ImcForm from './ImcForm';
 import ImcHistorial from './components/ImcHistorial';
+import Login from './components/Login';
+import Register from './components/Register';
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -14,45 +17,85 @@ export interface ImcRecord {
   createdAt: string;
 }
 
+export interface ImcResult {
+  imc: number;
+  categoria: string;
+}
+
 export default function App() {
   const [records, setRecords] = useState<ImcRecord[]>([]);
   const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<ImcResult | null>(null);
+  const [user, setUser] = useState(() => {
+    // Intenta recuperar el usuario del localStorage
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
 
   const fetchRecords = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${API}/imc/historial`);
-      setRecords(response.data);
-    } catch (error) {
-      console.error('Error fetching records:', error);
-    } finally {
-      setLoading(false);
+  setLoading(true);
+  try {
+    // Usa el id del usuario guardado en el estado
+    if (!user || !user.id) {
+      throw new Error('No hay usuario logueado');
     }
-  };
+    const response = await axios.get(`${API}/imc/historial`, {
+      params: { user_id: user.id }
+    });
+    setRecords(response.data);
+  } catch (error) {
+    console.error('Error fetching records:', error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
-    fetchRecords();
-  }, []);
+    if (user) fetchRecords();
+  }, [user]);
 
-  return (
+  // Función para manejar login exitoso
+  const handleLogin = (userData: any) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  // Función para logout
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // Página principal protegida
+  const MainPage = () => (
     <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1a1a3d] to-[#3a0ca3] flex items-center justify-center font-sans p-4 text-white">
       <div className="w-full max-w-6xl space-y-8">
         <header className="text-center">
           <h1 className="text-5xl font-bold">Calculadora de IMC</h1>
-          <p className="text-slate-400 mt-2 text-lg">Organiza tu seguimiento de salud con estilo y eficiencia.</p>
+          <button onClick={handleLogout} className="mt-4 px-4 py-2 bg-red-600 rounded">Cerrar sesión</button>
         </header>
-
-        {/* Sección del Formulario */}
         <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
-          <ImcForm onSuccess={fetchRecords} />
+          <ImcForm
+            onSuccess={fetchRecords}
+            resultado={resultado}
+            setResultado={setResultado}
+          />
         </div>
-
-        {/* Sección del Historial */}
         <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
           <ImcHistorial records={records} loading={loading} />
         </div>
       </div>
     </div>
   );
-}
 
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+        <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
+        <Route path="/" element={user ? <MainPage /> : <Navigate to="/login" />} />
+        {/* Puedes agregar más rutas protegidas aquí */}
+      </Routes>
+    </Router>
+  );
+}

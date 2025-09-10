@@ -24,4 +24,7 @@ export class ImcRecord {
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
+
+  @Column({ nullable: true }) 
+  user_id: number;
 }

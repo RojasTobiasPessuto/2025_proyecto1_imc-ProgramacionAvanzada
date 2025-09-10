@@ -8,4 +8,7 @@ export class CalcularImcDto {
   @IsNumber()
   @Min(1) // Peso mínimo razonable
   peso: number;
+
+  @IsNumber()
+  user_id: number;
 }
