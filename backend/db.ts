@@ -1,12 +1,17 @@
 import { Pool } from 'pg';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const pool = new Pool({
-  user: 'imc_user',
-  host: 'localhost',
-  database: 'db_imc',
-  password: 'asdasd',
-  port: 5432,
-
+  host: process.env.DB_HOST,
+  port: Number(process.env.DB_PORT),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  ssl: {
+    rejectUnauthorized: false, // necesario para Supabase
+  },
 });
 
 export default pool;
