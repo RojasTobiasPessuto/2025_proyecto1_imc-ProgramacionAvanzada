@@ -21,12 +21,12 @@ import { AuthController } from './auth.controller';
       database: process.env.DB_NAME,
       entities: [User, ImcRecord],
       synchronize: true,
-       ssl: {
-    rejectUnauthorized: false, // 👈 esto soluciona el error del certificado
-  },
+      ssl: { rejectUnauthorized: false },   // 🔑 requerido por Supabase
   extra: {
-     options: '-c statement_timeout=5000'
-    }
+    ssl: true,
+    statement_timeout: 5000,
+    query_timeout: 5000
+  }
     }),
   ],
   controllers: [AppController, AuthController],
