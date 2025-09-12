@@ -6,6 +6,7 @@ import { User } from './module/imc/entities/user.entity';
 import { ImcRecord } from './module/imc/entities/imc-record.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { AppService } from './app.service';
     }
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, AuthController],
   providers: [AppService],
 })
 export class AppModule {}
