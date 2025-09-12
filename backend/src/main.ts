@@ -1,6 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import authRouter from '../routes/auth'; // importa tu router de login/register
+import * as express from 'express';
+
 
 
 async function bootstrap() {
@@ -11,6 +14,9 @@ async function bootstrap() {
 
   // Pipes globales de validación
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
+
+
+  app.use('/api', authRouter);
 
   // Render necesita PORT y 0.0.0.0
   const port = process.env.PORT || 3000;
