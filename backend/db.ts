@@ -6,6 +6,7 @@ const pool = new Pool({
   database: 'db_imc',
   password: 'asdasd',
   port: 5432,
+  
 });
 
 export default pool;

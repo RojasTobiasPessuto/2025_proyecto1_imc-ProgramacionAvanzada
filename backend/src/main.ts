@@ -12,8 +12,10 @@ async function bootstrap() {
   // Pipes globales de validación
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }));
 
+  // Render necesita PORT y 0.0.0.0
+  const port = process.env.PORT || 3000;
+  await app.listen(port, '0.0.0.0');
 
-
-  await app.listen(3000);
+  console.log(`🚀 Backend running on port ${port}`);
 }
 bootstrap();
