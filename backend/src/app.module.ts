@@ -21,7 +21,9 @@ import { AuthController } from './auth.controller';
       database: process.env.DB_NAME,
       entities: [User, ImcRecord],
       synchronize: true,
-      ssl: { rejectUnauthorized: false },   // 🔑 requerido por Supabase
+      ssl: {
+        rejectUnauthorized: false,
+      },   // 🔑 requerido por Supabase
   extra: {
     ssl: true,
     statement_timeout: 5000,
