@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: imc_pass
       POSTGRES_DB: db_imc   # 👈 acá cambio a "db_imc" como definiste en backend
     ports:
-      - "5432:5432"
+      - "6543:6543"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
