@@ -41,7 +41,7 @@ describe("ImcService", () => {
   });
 
   it("should calculate IMC correctly", async () => {
-    const dto: CalcularImcDto = { altura: 1.75, peso: 70 };
+    const dto: CalcularImcDto = { altura: 1.75, peso: 70, user_id: 1 };
     const result = await service.calcularYGuardar(dto);
 
     expect(result.imc).toBeCloseTo(22.86, 2);
@@ -50,7 +50,7 @@ describe("ImcService", () => {
   });
 
   it("should return Bajo peso for IMC < 18.5", async () => {
-    const dto: CalcularImcDto = { altura: 1.75, peso: 50 };
+    const dto: CalcularImcDto = { altura: 1.75, peso: 50, user_id: 2 };
     const result = await service.calcularYGuardar(dto);
 
     expect(result.imc).toBeCloseTo(16.33, 2);
@@ -58,7 +58,7 @@ describe("ImcService", () => {
   });
 
   it("should return Sobrepeso for 25 <= IMC < 30", async () => {
-    const dto: CalcularImcDto = { altura: 1.75, peso: 80 };
+    const dto: CalcularImcDto = { altura: 1.75, peso: 80, user_id: 3 };
     const result = await service.calcularYGuardar(dto);
 
     expect(result.imc).toBeCloseTo(26.12, 2);
@@ -66,7 +66,7 @@ describe("ImcService", () => {
   });
 
   it("should return Obesidad for IMC >= 30", async () => {
-    const dto: CalcularImcDto = { altura: 1.75, peso: 100 };
+    const dto: CalcularImcDto = { altura: 1.75, peso: 100, user_id: 4 };
     const result = await service.calcularYGuardar(dto);
 
     expect(result.imc).toBeCloseTo(32.65, 2);
