@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './entities/user.entity';
 import { ImcRecord } from './entities/imc-record.entity';
 import { ImcService } from './imc.service';
 import { ImcController } from './imc.controller';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ImcRecord])],
+  imports: [TypeOrmModule.forFeature([User, ImcRecord])],
   providers: [ImcService],
   controllers: [ImcController],
 })
