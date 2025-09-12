@@ -11,7 +11,7 @@ router.post('/register', async (req: Request, res: Response) => {
   try {
     const hash = await bcrypt.hash(password, 10);
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING id, email',
+  'INSERT INTO users (email, password) VALUES ($1, $2) RETURNING id, email',
       [email, hash]
     );
     res.status(201).json({ user: result.rows[0] });
@@ -37,7 +37,7 @@ router.post('/login', async (req: Request, res: Response) => {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }
     const user = result.rows[0];
-    const valid = await bcrypt.compare(password, user.password_hash);
+  const valid = await bcrypt.compare(password, user.password);
     if (!valid) {
       return res.status(401).json({ error: 'Credenciales inválidas' });
     }

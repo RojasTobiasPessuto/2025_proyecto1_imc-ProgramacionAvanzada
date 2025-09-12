@@ -3,7 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  ManyToOne
 } from 'typeorm';
+import { User } from './user.entity';
 
 @Entity({ name: 'imc_records' })
 export class ImcRecord {
@@ -25,6 +27,9 @@ export class ImcRecord {
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @Column({ nullable: true }) 
+  @Column({ nullable: true })
   user_id: number;
+
+  @ManyToOne(() => User, user => user.imcRecords, { nullable: true, onDelete: 'SET NULL' })
+  user: User;
 }
