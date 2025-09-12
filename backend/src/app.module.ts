@@ -20,7 +20,9 @@ import { AppService } from './app.service';
       database: process.env.DB_NAME,
       entities: [User, ImcRecord],
       synchronize: true,
-      ssl: true,
+       ssl: {
+    rejectUnauthorized: false, // 👈 esto soluciona el error del certificado
+  },
     }),
   ],
   controllers: [AppController],
