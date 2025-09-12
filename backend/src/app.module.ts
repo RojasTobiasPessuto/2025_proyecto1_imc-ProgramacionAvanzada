@@ -23,6 +23,9 @@ import { AppService } from './app.service';
        ssl: {
     rejectUnauthorized: false, // 👈 esto soluciona el error del certificado
   },
+  extra: {
+     options: '-c statement_timeout=5000'
+    }
     }),
   ],
   controllers: [AppController],
