@@ -14,20 +14,18 @@ import { AuthController } from './auth.controller';
     ImcModule,
     TypeOrmModule.forRoot({
   type: 'postgres',
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '5432', 10),
-  username: process.env.DB_USER,
+  host: process.env.DB_HOST, // aws-1-us-east-2.pooler.supabase.com
+  port: parseInt(process.env.DB_PORT || '6543', 10),
+  username: process.env.DB_USER, // postgres.xxxxx (el largo del dashboard)
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
+  database: process.env.DB_NAME, // postgres
   autoLoadEntities: true,
-  synchronize: true,
+  synchronize: false, // ⚠️ muy importante: el pooler no soporta esto
   ssl: {
-    rejectUnauthorized: false, // necesario para Supabase
-  },
-  extra: {
-    family: 4, // fuerza IPv4 en Render
+    rejectUnauthorized: false,
   },
 }),
+
 
   ],
   controllers: [AppController, AuthController],
