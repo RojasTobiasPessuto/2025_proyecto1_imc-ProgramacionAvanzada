@@ -24,6 +24,9 @@ import { AuthController } from './auth.controller';
   ssl: {
     rejectUnauthorized: false, // necesario para Supabase
   },
+  extra: {
+    family: 4, // fuerza IPv4 en Render
+  },
 }),
 
   ],

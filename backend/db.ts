@@ -9,9 +9,8 @@ const pool = new Pool({
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
   database: process.env.DB_NAME,
-  ssl: {
-    rejectUnauthorized: false, // necesario para Supabase
-  },
+  ssl: { rejectUnauthorized: false },
+  family: 4, // fuerza IPv4
 });
 
 export default pool;
