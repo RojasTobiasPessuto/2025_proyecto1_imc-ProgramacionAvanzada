@@ -1,9 +1,7 @@
 import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Get } from '@nestjs/common';
 
-
-@Controller('api')
+@Controller('auth') // 👈 SOLO "auth", el /api lo agrega el globalPrefix
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -22,7 +20,4 @@ export class AuthController {
     }
     return this.authService.login(body.email, body.password);
   }
-
-
-
 }

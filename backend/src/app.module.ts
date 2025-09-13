@@ -5,39 +5,33 @@ import { ImcModule } from './module/imc/imc.module';
 import { User } from './module/imc/entities/user.entity';
 import { ImcRecord } from './module/imc/entities/imc-record.entity';
 import { AppController } from './app.controller';
-import { AppService } from './module/auth/app.service';
-import { AuthController } from './module/auth/auth.controller';
+import { AppService } from './app.service';
 import { AuthModule } from './module/auth/auth.module';
-
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    ImcModule,
-    AuthModule,
-
     TypeOrmModule.forRoot({
-  type: 'postgres',
-  host: process.env.DB_HOST,
-  port: parseInt(process.env.DB_PORT || '6543', 10),
-  username: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  entities: [User, ImcRecord],
-  autoLoadEntities: true,
-  synchronize: false,
-  ssl: {
-    rejectUnauthorized: false, // 👈 evita el error del self-signed
-  },
-  extra: {
-    max: 5,
-  },
-}),
-
-
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '6543', 10),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      entities: [User, ImcRecord],
+      autoLoadEntities: true,
+      synchronize: false,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      extra: {
+        max: 5,
+      },
+    }),
+    AuthModule,
     ImcModule,
   ],
-  controllers: [AppController, AuthController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}

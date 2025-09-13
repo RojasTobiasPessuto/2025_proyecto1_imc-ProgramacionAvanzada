@@ -1,8 +1,8 @@
-import { Injectable, UnauthorizedException, ConflictException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as bcrypt from 'bcrypt';
 import { User } from '../imc/entities/user.entity';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -14,18 +14,12 @@ export class AuthService {
   async register(email: string, password: string) {
     const existing = await this.userRepo.findOne({ where: { email } });
     if (existing) {
-      throw new ConflictException('Email ya registrado');
+      throw new UnauthorizedException('Email ya registrado');
     }
 
-    try {
-      const hash = await bcrypt.hash(password, 10);
-      const user = this.userRepo.create({ email, password: hash });
-      await this.userRepo.save(user);
-      return { id: user.id, email: user.email };
-    } catch (err) {
-      console.error('REGISTER ERROR:', err);
-      throw new InternalServerErrorException('Error del servidor');
-    }
+    const hash = await bcrypt.hash(password, 10);
+    const user = this.userRepo.create({ email, password: hash });
+    return this.userRepo.save(user);
   }
 
   async login(email: string, password: string) {
