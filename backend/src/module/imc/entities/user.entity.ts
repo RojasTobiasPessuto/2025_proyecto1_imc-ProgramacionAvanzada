@@ -3,9 +3,9 @@ import {
   PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
-  OneToMany
+  OneToMany,
 } from 'typeorm';
-import { ImcRecord } from './imc-record.entity';
+import { ImcRecord } from '../../imc/entities/imc-record.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -21,6 +21,6 @@ export class User {
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt: Date;
 
-  @OneToMany(() => ImcRecord, imcRecord => imcRecord.user)
+  @OneToMany(() => ImcRecord, (imcRecord) => imcRecord.user)
   imcRecords: ImcRecord[];
 }

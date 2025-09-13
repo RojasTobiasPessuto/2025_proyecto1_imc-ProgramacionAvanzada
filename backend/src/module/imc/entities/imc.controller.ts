@@ -1,6 +1,6 @@
 import { Controller, Post, Get, Body, Query } from "@nestjs/common";
-import { ImcService } from "./imc.service";
-import { CalcularImcDto } from "./dto/calcular-imc-dto";
+import { ImcService } from "../imc.service";
+import { CalcularImcDto } from "../dto/calcular-imc-dto";
 import { BadRequestException } from '@nestjs/common';
 
 

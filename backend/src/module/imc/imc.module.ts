@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ImcRecord } from './entities/imc-record.entity';
 import { ImcService } from './imc.service';
-import { ImcController } from './imc.controller';
+import { ImcController } from './entities/imc.controller';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User, ImcRecord])],
