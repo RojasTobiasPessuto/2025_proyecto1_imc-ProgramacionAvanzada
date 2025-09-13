@@ -13,20 +13,23 @@ import { AuthController } from './auth.controller';
     ConfigModule.forRoot({ isGlobal: true }),
 
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST, // aws-1-us-east-2.pooler.supabase.com
-      port: parseInt(process.env.DB_PORT || '6543', 10),
-      username: process.env.DB_USER, // postgres.qdzlzkdbyebdckfhbxlq
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME, // postgres
-      entities: [User, ImcRecord],
-      autoLoadEntities: true,
-      synchronize: false,   // ⚠️ nunca en pooler
-      ssl: true,            // 👈 fuerza SSL
-      extra: {
-        max: 5,             // 👈 pocas conexiones porque el pooler limita
-      },
-    }),
+  type: 'postgres',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '6543', 10),
+  username: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  entities: [User, ImcRecord],
+  autoLoadEntities: true,
+  synchronize: false,
+  ssl: {
+    rejectUnauthorized: false, // 👈 evita el error del self-signed
+  },
+  extra: {
+    max: 5,
+  },
+}),
+
 
     ImcModule,
   ],
