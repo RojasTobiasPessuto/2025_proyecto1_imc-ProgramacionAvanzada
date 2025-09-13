@@ -67,7 +67,7 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
       return;
     }
 
-      const response = await axios.post(`${API}/imc/calcular`, {
+      const response = await axios.post(`${API}/api/imc/calcular`, {
       altura: alturaNum,
       peso: pesoNum,
       user_id,

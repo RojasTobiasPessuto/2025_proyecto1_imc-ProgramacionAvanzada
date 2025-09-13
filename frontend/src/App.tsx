@@ -38,7 +38,7 @@ export default function App() {
     if (!user || !user.id) {
       throw new Error('No hay usuario logueado');
     }
-    const response = await axios.get(`${API}/imc/historial`, {
+    const response = await axios.get(`${API}/api/imc/historial`, {
       params: { user_id: user.id }
     });
     setRecords(response.data);

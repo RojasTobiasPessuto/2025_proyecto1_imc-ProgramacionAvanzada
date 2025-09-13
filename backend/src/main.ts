@@ -7,6 +7,9 @@ async function bootstrap() {
 
   app.enableCors();
 
+  app.setGlobalPrefix('api'); // 👈 prefijo para todo
+
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
