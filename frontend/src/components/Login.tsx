@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
 
 // --- Iconos SVG ---
 const UserIcon = () => (
@@ -29,7 +29,7 @@ export default function Login({ onLogin }: LoginProps) {
     e.preventDefault();
     setError('');
     try {
-      const res = await fetch(`${API}/api/login`, {
+  const res = await fetch(`${API}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const API = import.meta.env.VITE_API_URL;
+const API = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
 
 // --- Iconos SVG ---
 const UserIcon = () => (
