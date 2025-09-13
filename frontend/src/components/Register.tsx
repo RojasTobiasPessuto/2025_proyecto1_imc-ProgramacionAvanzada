@@ -28,13 +28,14 @@ export default function Register() {
     setSuccess('');
     try {
       console.log('Enviando datos:', { email, password });
-      console.log('URL:', `${API}/api/register`);
-      
-      const res = await fetch(`${API}/api/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+      console.log('URL:', `${API}/api/auth/register`);
+
+      const res = await fetch(`${API}/api/auth/register`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password }),
+});
+
       
       console.log('Response status:', res.status);
       console.log('Response headers:', res.headers);
@@ -100,6 +101,32 @@ export default function Register() {
             <button type="submit" className="w-full bg-purple-600 font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-400/50 transition-transform transform hover:scale-105 shadow-lg shadow-purple-500/30">
               Registrar
             </button>
+            <button
+  type="button"
+  className="w-full mt-2 bg-blue-600 font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400/50"
+  onClick={async () => {
+    const url = `${API}/api/auth/register`;
+    const testBody = { email: `test${Date.now()}@example.com`, password: "123456" };
+    try {
+      console.log("🔍 Probando URL:", url);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(testBody),
+      });
+      console.log("🔍 Status:", res.status);
+      const text = await res.text();
+      console.log("🔍 Respuesta completa:", text);
+      alert(`Status ${res.status}: ${text}`);
+    } catch (err) {
+      console.error("❌ Error en test:", err);
+      alert(`Error en test: ${err}`);
+    }
+  }}
+>
+  🚀 Testear conexión
+</button>
+
           </form>
 
           <div className="text-center text-slate-400">
