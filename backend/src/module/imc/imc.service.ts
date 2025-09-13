@@ -46,23 +46,23 @@ export class ImcService {
   }
 
   async listarHistorial(
-    user_id: number,
-    fechaInicio?: string,
-    fechaFin?: string
-  ): Promise<ImcRecord[]> {
-    const where: any = { user_id };
+  user_id: number,
+  fechaInicio?: string,
+  fechaFin?: string
+): Promise<ImcRecord[]> {
+  const where: any = { user_id };
 
-    if (fechaInicio && fechaFin) {
-      where.createdAt = Between(new Date(fechaInicio), new Date(fechaFin + 'T23:59:59'));
-    } else if (fechaInicio) {
-      where.createdAt = MoreThanOrEqual(new Date(fechaInicio));
-    } else if (fechaFin) {
-      where.createdAt = LessThanOrEqual(new Date(fechaFin + 'T23:59:59'));
-    }
+  if (fechaInicio && fechaFin) {
+    where.createdAt = Between(new Date(fechaInicio), new Date(fechaFin + 'T23:59:59'));
+  } else if (fechaInicio) {
+    where.createdAt = MoreThanOrEqual(new Date(fechaInicio));
+  } else if (fechaFin) {
+    where.createdAt = LessThanOrEqual(new Date(fechaFin + 'T23:59:59'));
+  }
 
-    return this.repo.find({
-      where,
-      order: { createdAt: "DESC" },
-    });
+  return this.repo.find({
+    where,
+    order: { createdAt: "DESC" }, // 👈 aquí también sigue siendo createdAt
+  });
   }
 }
