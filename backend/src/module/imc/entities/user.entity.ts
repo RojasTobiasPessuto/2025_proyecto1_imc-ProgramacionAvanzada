@@ -19,7 +19,7 @@ export class User {
   password: string;
 
   @CreateDateColumn({ name: 'createdat', type: 'timestamptz' })
-  createdat: Date;  // 👈 en minúsculas para matchear con la DB
+  createdAt: Date;  // 👈 en minúsculas para matchear con la DB
 
   @OneToMany(() => ImcRecord, (imcRecord) => imcRecord.user)
   imcRecords: ImcRecord[];
