@@ -10,9 +10,8 @@ import { AuthController } from './auth.controller';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }), // carga .env automáticamente
+    ConfigModule.forRoot({ isGlobal: true }),
 
-    // conexión a Supabase
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST, // aws-1-us-east-2.pooler.supabase.com
@@ -20,13 +19,16 @@ import { AuthController } from './auth.controller';
       username: process.env.DB_USER, // postgres.qdzlzkdbyebdckfhbxlq
       password: process.env.DB_PASS,
       database: process.env.DB_NAME, // postgres
-      entities: [User, ImcRecord], // 👈 registrar explícitamente las entidades
-      autoLoadEntities: true,       // y cargar entidades de los módulos
-      synchronize: false,           // ⚠️ con pooler no usar true
-      ssl: { rejectUnauthorized: false },
+      entities: [User, ImcRecord],
+      autoLoadEntities: true,
+      synchronize: false,   // ⚠️ nunca en pooler
+      ssl: true,            // 👈 fuerza SSL
+      extra: {
+        max: 5,             // 👈 pocas conexiones porque el pooler limita
+      },
     }),
 
-    ImcModule, // módulo de IMC
+    ImcModule,
   ],
   controllers: [AppController, AuthController],
   providers: [AppService],
