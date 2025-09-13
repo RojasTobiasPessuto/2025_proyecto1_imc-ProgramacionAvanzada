@@ -1,14 +1,20 @@
-import { IsNumber, Min } from 'class-validator';
+// src/module/imc/dto/calcular-imc-dto.ts
+import { IsNumber, IsInt, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CalcularImcDto {
+  @Type(() => Number)
   @IsNumber()
-  @Min(0.1) // Altura mínima razonable
+  @Min(0.3)
   altura: number;
 
+  @Type(() => Number)
   @IsNumber()
-  @Min(1) // Peso mínimo razonable
+  @Min(1)
   peso: number;
 
-  @IsNumber()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
   user_id: number;
 }

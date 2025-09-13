@@ -5,7 +5,7 @@ import {
   CreateDateColumn,
   OneToMany,
 } from 'typeorm';
-import { ImcRecord } from '../../imc/entities/imc-record.entity';
+import { ImcRecord } from './imc-record.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -19,8 +19,7 @@ export class User {
   password: string;
 
   @CreateDateColumn({ name: 'createdat', type: 'timestamptz' })
-  createdAt: Date;
-
+  createdat: Date;  // 👈 en minúsculas para matchear con la DB
 
   @OneToMany(() => ImcRecord, (imcRecord) => imcRecord.user)
   imcRecords: ImcRecord[];

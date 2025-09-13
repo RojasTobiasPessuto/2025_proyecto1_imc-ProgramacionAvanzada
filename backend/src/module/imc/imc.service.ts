@@ -20,7 +20,7 @@ export class ImcService {
 
   async calcularYGuardar(
     data: CalcularImcDto,
-  ): Promise<{ id: string; imc: number; categoria: string; createdAt: Date }> {
+  ): Promise<{ id: string; imc: number; categoria: string; createdat: Date }> {
     const { altura, peso, user_id } = data;
     const imc = peso / (altura * altura);
     const imcRedondeado = Math.round(imc * 100) / 100;
@@ -41,28 +41,31 @@ export class ImcService {
       id: saved.id,
       imc: saved.imc,
       categoria: saved.categoria,
-      createdAt: saved.createdAt,
+      createdat: saved.createdat, // 👈 importante: usamos createdAt mapeado a createdat
     };
   }
 
   async listarHistorial(
-  user_id: number,
-  fechaInicio?: string,
-  fechaFin?: string
-): Promise<ImcRecord[]> {
-  const where: any = { user_id };
+    user_id: number,
+    fechaInicio?: string,
+    fechaFin?: string
+  ): Promise<ImcRecord[]> {
+    const where: any = { user_id };
 
-  if (fechaInicio && fechaFin) {
-    where.createdAt = Between(new Date(fechaInicio), new Date(fechaFin + 'T23:59:59'));
-  } else if (fechaInicio) {
-    where.createdAt = MoreThanOrEqual(new Date(fechaInicio));
-  } else if (fechaFin) {
-    where.createdAt = LessThanOrEqual(new Date(fechaFin + 'T23:59:59'));
-  }
+    if (fechaInicio && fechaFin) {
+      where.createdAt = Between(
+        new Date(fechaInicio),
+        new Date(fechaFin + "T23:59:59"),
+      );
+    } else if (fechaInicio) {
+      where.createdAt = MoreThanOrEqual(new Date(fechaInicio));
+    } else if (fechaFin) {
+      where.createdAt = LessThanOrEqual(new Date(fechaFin + "T23:59:59"));
+    }
 
-  return this.repo.find({
-    where,
-    order: { createdAt: "DESC" }, // 👈 aquí también sigue siendo createdAt
-  });
+    return this.repo.find({
+      where,
+      order: { createdat: "DESC" }, // 👈 apunta a createdAt (mapeado a createdat)
+    });
   }
 }
