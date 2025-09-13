@@ -2,7 +2,7 @@ import { Injectable, UnauthorizedException, ConflictException, InternalServerErr
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../../module/imc/entities/user.entity';
+import { User } from '../imc/entities/user.entity';
 
 @Injectable()
 export class AuthService {

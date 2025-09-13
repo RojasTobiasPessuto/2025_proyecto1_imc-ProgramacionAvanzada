@@ -5,9 +5,9 @@ import { ImcModule } from './module/imc/imc.module';
 import { User } from './module/imc/entities/user.entity';
 import { ImcRecord } from './module/imc/entities/imc-record.entity';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
-import { AuthController } from './imc/auth/auth.controller';
-import { AuthModule } from './imc/auth/auth.module';
+import { AppService } from './module/auth/app.service';
+import { AuthController } from './module/auth/auth.controller';
+import { AuthModule } from './module/auth/auth.module';
 
 
 @Module({
