@@ -9,9 +9,11 @@ export class ImcController {
   constructor(private readonly imcService: ImcService) {}
 
   @Post("calcular")
-  async calcular(@Body() dto: CalcularImcDto) {
-    return this.imcService.calcularYGuardar(dto);
-  }
+async calcular(@Body() dto: CalcularImcDto) {
+  console.log("DTO recibido:", dto);
+  return this.imcService.calcularYGuardar(dto);
+}
+
 
   @Get("historial")
 async historial(

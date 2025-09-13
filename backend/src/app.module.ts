@@ -30,6 +30,7 @@ import { AuthModule } from './module/auth/auth.module';
     }),
     AuthModule,
     ImcModule,
+    
   ],
   controllers: [AppController],
   providers: [AppService],
