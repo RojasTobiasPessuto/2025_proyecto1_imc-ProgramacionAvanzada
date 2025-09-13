@@ -32,7 +32,7 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
     if(end) end.setHours(23, 59, 59, 999);
 
     return records.filter(record => {
-      const recordDate = new Date(record.createdAt);
+      const recordDate = new Date(record.createdat);
       if (start && end) return recordDate >= start && recordDate <= end;
       if (start) return recordDate >= start;
       if (end) return recordDate <= end;
@@ -101,7 +101,7 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
   {filteredRecords.map((r) => (
     <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
       <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-        {new Date(r.createdAt).toLocaleDateString('es-ES')}
+        {new Date(r.createdat).toLocaleDateString('es-ES')}
       </td>
       <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
         {r.pesoKg} kg
