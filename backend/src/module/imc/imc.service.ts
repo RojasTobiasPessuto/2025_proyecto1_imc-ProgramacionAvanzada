@@ -41,7 +41,7 @@ export class ImcService {
       id: saved.id,
       imc: saved.imc,
       categoria: saved.categoria,
-      createdat: saved.createdat, // 👈 importante: usamos createdAt mapeado a createdat
+      createdat: saved.createdAt, // 👈 importante: usamos createdAt mapeado a createdat
     };
   }
 
@@ -65,7 +65,7 @@ export class ImcService {
 
     return this.repo.find({
       where,
-      order: { createdat: "DESC" }, // 👈 apunta a createdAt (mapeado a createdat)
+      order: { createdAt: "DESC" }, // 👈 apunta a createdAt (mapeado a createdat)
     });
   }
 }
