@@ -20,7 +20,7 @@ import { AuthModule } from './module/auth/auth.module';
       database: process.env.DB_NAME,
       entities: [User, ImcRecord],
       autoLoadEntities: true,
-      synchronize: false,
+      synchronize: true,
     }),
     AuthModule,
     ImcModule,
