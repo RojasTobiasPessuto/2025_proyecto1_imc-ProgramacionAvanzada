@@ -11,7 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
-
+postgres_backup.tar
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
