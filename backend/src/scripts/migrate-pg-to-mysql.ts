@@ -26,17 +26,16 @@ async function createPostgresDS() {
 async function createMysqlDS() {
   return new DataSource({
     type: 'mysql',
-    host: env('MYSQL_HOST'),
-    port: parseInt(env('MYSQL_PORT', '3306'), 10),
-    username: env('MYSQL_USER'),
-    password: env('MYSQL_PASS'),
-    database: env('MYSQL_NAME'),
+    host: env('MYSQLHOST'),
+    port: parseInt(env('MYSQLPORT', '3306'), 10),
+    username: env('MYSQLUSER'),
+    password: env('MYSQLPASSWORD'),
+    database: env('MYSQLDATABASE'),
     entities: [User, ImcRecord],
     // Solo durante la migración creamos el schema para que matchee entidades
     synchronize: true
   }).initialize();
 }
-
 async function migrate() {
   const pg = await createPostgresDS();
   const my = await createMysqlDS();

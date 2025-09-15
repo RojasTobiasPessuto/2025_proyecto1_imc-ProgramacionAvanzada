@@ -25,7 +25,7 @@ import { AuthModule } from './module/auth/auth.module';
       ...(process.env.DB_SSL === 'true' ? { ssl: { rejectUnauthorized: true } } : {}),
       entities: [User, ImcRecord],
       autoLoadEntities: true,
-      synchronize: true,
+      synchronize: false,
     }),
     AuthModule,
     ImcModule,
