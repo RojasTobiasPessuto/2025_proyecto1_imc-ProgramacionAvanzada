@@ -5,8 +5,8 @@
     "tailwindcss": "^4.1.13"
   },
   "scripts": {
-    "postinstall": "npm --prefix backend install",
+    "postinstall": "npm --prefix backend install --include=dev",
     "build": "npm --prefix backend run build",
-    "start": "node backend/dist/main.js"
+    "start": "npm --prefix backend run build && node backend/dist/main.js"
   }
 }
