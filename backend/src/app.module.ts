@@ -12,21 +12,15 @@ import { AuthModule } from './module/auth/auth.module';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
+      type: 'mysql',
       host: process.env.DB_HOST,
-      port: parseInt(process.env.DB_PORT || '6543', 10),
+      port: parseInt(process.env.DB_PORT || '3306', 10),
       username: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
       entities: [User, ImcRecord],
       autoLoadEntities: true,
       synchronize: false,
-      ssl: {
-        rejectUnauthorized: false,
-      },
-      extra: {
-        max: 5,
-      },
     }),
     AuthModule,
     ImcModule,

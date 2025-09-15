@@ -18,7 +18,7 @@ export class User {
   @Column()
   password: string;
 
-  @CreateDateColumn({ name: 'createdat', type: 'timestamptz' })
+  @CreateDateColumn({ name: 'createdat'})
   createdAt: Date;  // 👈 en minúsculas para matchear con la DB
 
   @OneToMany(() => ImcRecord, (imcRecord) => imcRecord.user)

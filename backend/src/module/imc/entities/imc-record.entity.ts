@@ -25,7 +25,7 @@ export class ImcRecord {
   @Column({ type: 'varchar', length: 20 })
   categoria: string;
 
-  @CreateDateColumn({ name: 'createdat', type: 'timestamptz' })
+  @CreateDateColumn({ name: 'createdat'})
   createdAt: Date; // 👈 en minúsculas igual que la DB
 
   @Column({ name: 'user_id', nullable: true })
