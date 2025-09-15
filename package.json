@@ -3,5 +3,10 @@
     "@tailwindcss/vite": "^4.1.13",
     "dotenv": "^17.2.2",
     "tailwindcss": "^4.1.13"
+  },
+  "scripts": {
+    "postinstall": "npm --prefix backend install",
+    "build": "npm --prefix backend run build",
+    "start": "node backend/dist/main.js"
   }
 }
