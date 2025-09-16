@@ -40,7 +40,8 @@ describe("ImcService", () => {
     expect(service).toBeDefined();
   });
 
-  it("should calculate IMC correctly", async () => {
+  // Casos de cálculo de IMC
+  it("should calculate IMC correctly (Normal)", async () => {
     const dto: CalcularImcDto = { altura: 1.75, peso: 70, user_id: 1 };
     const result = await service.calcularYGuardar(dto);
 
@@ -71,5 +72,40 @@ describe("ImcService", () => {
 
     expect(result.imc).toBeCloseTo(32.65, 2);
     expect(result.categoria).toBe("Obesidad");
+  });
+
+  // Casos de historial
+  it("should return empty historial if no records found", async () => {
+    jest.spyOn(repo, "find").mockResolvedValueOnce([]);
+    const result = await service.listarHistorial(1);
+    expect(result).toEqual([]);
+    expect(repo.find).toHaveBeenCalled();
+  });
+
+  it("should return historial with records when found", async () => {
+    const fakeRecord = {
+  id: "uuid-5678",
+  user_id: 1,
+  pesoKg: 70,
+  alturaM: 1.75,
+  imc: 22.86,
+  categoria: "Normal",
+  createdAt: new Date("2025-01-02T00:00:00Z"),
+} as ImcRecord;
+
+    jest.spyOn(repo, "find").mockResolvedValueOnce([fakeRecord]);
+
+    const result = await service.listarHistorial(1, "2025-01-01", "2025-01-03");
+
+    expect(result).toHaveLength(1);
+    expect(result[0]).toMatchObject({
+      user_id: 1,
+      categoria: "Normal",
+    });
+    expect(repo.find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ user_id: 1 }),
+      }),
+    );
   });
 });
