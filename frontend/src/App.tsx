@@ -5,6 +5,7 @@ import ImcForm from './ImcForm';
 import ImcHistorial from './components/ImcHistorial';
 import Login from './components/Login';
 import Register from './components/Register';
+import Estadisticas from './components/Estadisticas';
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -159,22 +160,28 @@ export default function App() {
       )}
 
       <div className="w-full max-w-6xl space-y-8">
-        <header className="text-center">
-          <h1 className="text-5xl font-bold">Calculadora de IMC</h1>
-        </header>
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
-          <ImcForm
-            onSuccess={fetchRecords}
-            resultado={resultado}
-            setResultado={setResultado}
-          />
-        </div>
-        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
-          <ImcHistorial records={records} loading={loading} />
-        </div>
+      <header className="text-center">
+        <h1 className="text-5xl font-bold">Calculadora de IMC</h1>
+      </header>
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <ImcForm
+          onSuccess={fetchRecords}
+          resultado={resultado}
+          setResultado={setResultado}
+        />
+      </div>
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <ImcHistorial records={records} loading={loading} />
+      </div>
+
+      {/* 👇 Nuevo bloque de estadísticas */}
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <Estadisticas records={records} />
       </div>
     </div>
-  );
+  </div>
+);
+
 
   return (
     <Router>

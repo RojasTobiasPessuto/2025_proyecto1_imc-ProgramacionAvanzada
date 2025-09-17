@@ -1,5 +1,7 @@
 import { useState, useMemo } from "react";
 import { ImcRecord } from '../App';
+import { Line } from "react-chartjs-2";
+
 
 interface ImcHistorialProps {
   records: ImcRecord[];
