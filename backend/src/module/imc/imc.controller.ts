@@ -24,3 +24,4 @@ export class ImcController {
     return this.imcService.listarHistorial(userIdNum, fechaInicio, fechaFin);
   }
 }
+
