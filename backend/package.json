@@ -18,8 +18,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+<<<<<<< HEAD
     "prebuild": "rimraf dist",
     "migrate:pg2mysql": "ts-node src/scripts/migrate-pg-to-mysql.ts"
+=======
+    "prebuild": "rimraf dist"
+>>>>>>> 1c2f831dc2cc1bc1e2dbc5304d2a08685046ee22
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -56,16 +60,15 @@
     "globals": "^15.14.0",
     "jest": "^29.7.0",
     "prettier": "^3.4.2",
+    "rimraf": "^5.0.0",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
-    "ts-jest": "^29.2.5",
+    "ts-jest": "^29.4.1",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0",
-    "rimraf": "^5.0.0"
-
+    "typescript-eslint": "^8.20.0"
   },
   "jest": {
     "moduleFileExtensions": [
