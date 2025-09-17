@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Line, Bar } from "react-chartjs-2";
+import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,6 +10,8 @@ import {
   Title,
   Tooltip,
   Legend,
+  ArcElement,
+  RadialLinearScale,
 } from "chart.js";
 import { ImcRecord } from "../App";
 
@@ -21,7 +23,9 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  ArcElement,
+  RadialLinearScale
 );
 
 interface EstadisticasProps {
@@ -103,31 +107,6 @@ export default function Estadisticas({ records }: EstadisticasProps) {
     ],
   };
 
-  const lineOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
-        labels: { color: "#e5e7eb" },
-      },
-      title: {
-        display: true,
-        text: "Evolución de Peso e IMC",
-        color: "#f3f4f6",
-      },
-    },
-    scales: {
-      x: {
-        ticks: { color: "#cbd5e1" },
-        grid: { color: "rgba(255,255,255,0.1)" },
-      },
-      y: {
-        ticks: { color: "#cbd5e1" },
-        grid: { color: "rgba(255,255,255,0.1)" },
-      },
-    },
-  };
-
   // Data para gráfico de barras
   const barData = {
     labels: promediosMensuales.map((d) => d.mes),
@@ -142,23 +121,76 @@ export default function Estadisticas({ records }: EstadisticasProps) {
     ],
   };
 
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top" as const,
+  // Conteo por categoría (para Pie)
+  const conteoCategorias = useMemo(() => {
+    const counts: { [cat: string]: number } = {};
+    records.forEach((r) => {
+      counts[r.categoria] = (counts[r.categoria] || 0) + 1;
+    });
+    return counts;
+  }, [records]);
+
+  const pieData = {
+    labels: Object.keys(conteoCategorias),
+    datasets: [
+      {
+        label: "Cantidad",
+        data: Object.values(conteoCategorias),
+        backgroundColor: [
+          "rgba(16, 185, 129, 0.6)", // verde
+          "rgba(59, 130, 246, 0.6)", // azul
+          "rgba(250, 204, 21, 0.6)", // amarillo
+          "rgba(239, 68, 68, 0.6)", // rojo
+          "rgba(148, 163, 184, 0.6)", // gris
+        ],
+        borderColor: "rgba(255,255,255,1)",
+        borderWidth: 1,
       },
-      title: {
-        display: true,
-        text: "Promedio Mensual de IMC",
-      },
-    },
+    ],
   };
 
+  // Variación mensual (para Polar Area)
+  const variacionMensual = useMemo(() => {
+    const grupos: { [mes: string]: number[] } = {};
+
+    records.forEach((r) => {
+      const fecha = new Date(r.createdAt);
+      const mes = fecha.toLocaleString("es-ES", { month: "long", year: "numeric" });
+      if (!grupos[mes]) grupos[mes] = [];
+      grupos[mes].push(Number(r.imc));
+    });
+
+    return Object.keys(grupos).map((mes) => {
+      const valores = grupos[mes];
+      const media = valores.reduce((a, b) => a + b, 0) / valores.length;
+      const desviacionPromedio =
+        valores.reduce((a, b) => a + Math.abs(b - media), 0) / valores.length;
+      return { mes, desviacion: desviacionPromedio };
+    });
+  }, [records]);
+
+  const polarData = {
+    labels: variacionMensual.map((d) => d.mes),
+    datasets: [
+      {
+        label: "Variación Promedio (IMC)",
+        data: variacionMensual.map((d) => d.desviacion),
+        backgroundColor: [
+          "rgba(59, 130, 246, 0.6)",
+          "rgba(16, 185, 129, 0.6)",
+          "rgba(250, 204, 21, 0.6)",
+          "rgba(239, 68, 68, 0.6)",
+          "rgba(148, 163, 184, 0.6)",
+        ],
+        borderColor: "rgba(255,255,255,1)",
+        borderWidth: 1,
+      },
+    ],
+  };
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Estadísticas</h2>
-
+  
       {/* Filtros */}
       <div className="flex gap-4 mb-6">
         <input
@@ -174,14 +206,32 @@ export default function Estadisticas({ records }: EstadisticasProps) {
           className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
         />
       </div>
-
+  
       {/* Gráfico de líneas */}
-      <Line data={lineData} options={lineOptions} />
-
+      <div className="mt-8">
+        <h3 className="text-2xl font-semibold mb-4 text-center">Evolución de Peso e IMC</h3>
+        <Line data={lineData} />
+      </div>
+  
       {/* Gráfico de barras */}
       {promediosMensuales.length > 0 && (
         <div className="mt-8">
-          <Bar data={barData} options={barOptions} />
+          <h3 className="text-2xl font-semibold mb-4 text-center">Promedio Mensual de IMC</h3>
+          <Bar data={barData} />
+        </div>
+      )}
+  
+      {/* Pie y Polar Area juntos */}
+      {Object.keys(conteoCategorias).length > 0 && variacionMensual.length > 0 && (
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <h3 className="text-2xl font-semibold mb-4 text-center">Distribución por Categoría Total</h3>
+            <Pie data={pieData} />
+          </div>
+          <div>
+            <h3 className="text-2xl font-semibold mb-4 text-center">Variación Promedio Mensual (IMC)</h3>
+            <PolarArea data={polarData} />
+          </div>
         </div>
       )}
     </div>
