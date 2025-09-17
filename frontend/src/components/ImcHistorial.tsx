@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import { ImcRecord } from '../App';
-import { Line } from "react-chartjs-2";
 
 
 interface ImcHistorialProps {
@@ -129,13 +128,6 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
           </div>
         )}
       </div>
-
-      {/* 👇 Aquí aparece el gráfico al final */}
-{promediosMensuales.length > 0 && (
-  <div className="mt-8">
-    <ImcChart records={promediosMensuales} />
-  </div>
-)}
     </div>
   );
 }
