@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { ImcRecord } from '../App';
+import ImcChart from "./ImcChart";
 
 interface ImcHistorialProps {
   records: ImcRecord[];
@@ -7,8 +8,6 @@ interface ImcHistorialProps {
 }
 
 // Iconos SVG
-
-
 const ClearIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -27,7 +26,6 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
     const start = startDate ? new Date(startDate) : null;
     const end = endDate ? new Date(endDate) : null;
     
-    // Ajustar la hora para incluir el día completo
     if(start) start.setHours(0, 0, 0, 0);
     if(end) end.setHours(23, 59, 59, 999);
 
@@ -54,33 +52,37 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
     }
   };
 
+  // 👇 Calcular promedios mensuales
+  const promediosMensuales = useMemo(() => {
+    const agrupados: { [mes: string]: number[] } = {};
+
+    filteredRecords.forEach(r => {
+      const fecha = new Date(r.createdAt);
+      const mes = fecha.toLocaleString("es-ES", { month: "long" });
+      if (!agrupados[mes]) agrupados[mes] = [];
+      agrupados[mes].push(Number(r.imc));
+    });
+
+    return Object.keys(agrupados).map(mes => ({
+      mes,
+      promedio: agrupados[mes].reduce((a, b) => a + b, 0) / agrupados[mes].length
+    }));
+  }, [filteredRecords]);
+
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h2 className="font-semibold text-2xl">Historial de cálculos</h2>
         <div className="flex items-center gap-4 flex-wrap">
-          <input 
-            type="date" 
-            value={startDate} 
-            onChange={(e) => setStartDate(e.target.value)} 
-            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-          />
+          <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"/>
           <span className="text-slate-400">-</span>
-          <input 
-            type="date" 
-            value={endDate} 
-            onChange={(e) => setEndDate(e.target.value)} 
-            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
-          />
-          <button 
-            onClick={clearFilters} 
-            className="flex items-center gap-2 px-4 py-2 bg-slate-700/80 rounded-lg hover:bg-slate-600/80 transition"
-          >
+          <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"/>
+          <button onClick={clearFilters} className="flex items-center gap-2 px-4 py-2 bg-slate-700/80 rounded-lg hover:bg-slate-600/80 transition">
             <ClearIcon/> Limpiar
           </button>
         </div>
       </div>
-      
+
       <div className="h-64 overflow-y-auto pr-2">
         {loading ? (
           <div className="flex items-center justify-center h-full">
@@ -98,26 +100,26 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
               </tr>
             </thead>
             <tbody>
-  {filteredRecords.map((r) => (
-    <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
-      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-        {new Date(r.createdAt).toLocaleDateString('es-ES')}
-      </td>
-      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-        {r.pesoKg} kg
-      </td>
-      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
-        {r.alturaM} m
-      </td>
-      <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
-        {Number(r.imc).toFixed(2)}
-      </td>
-      <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
-        {r.categoria}
-      </td>
-    </tr>
-  ))}
-</tbody>
+              {filteredRecords.map((r) => (
+                <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
+                  <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+                    {new Date(r.createdAt).toLocaleDateString('es-ES')}
+                  </td>
+                  <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+                    {r.pesoKg} kg
+                  </td>
+                  <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+                    {r.alturaM} m
+                  </td>
+                  <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
+                    {Number(r.imc).toFixed(2)}
+                  </td>
+                  <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
+                    {r.categoria}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
@@ -126,6 +128,13 @@ export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
           </div>
         )}
       </div>
+
+      {/* 👇 Aquí aparece el gráfico al final */}
+{promediosMensuales.length > 0 && (
+  <div className="mt-8">
+    <ImcChart records={promediosMensuales} />
+  </div>
+)}
     </div>
   );
 }
