@@ -43,28 +43,28 @@ describe('Estadisticas (e2e)', () => {
 
   it('GET /estadisticas/promedio', async () => {
     const res = await request(app.getHttpServer())
-      .get('/estadisticas/promedio?user_id=1')
+      .get('/estadisticas/promedio?user_id=23')
       .expect(200);
     expect(res.body).toHaveProperty('promedio');
   });
 
   it('GET /estadisticas/evolucion', async () => {
     const res = await request(app.getHttpServer())
-      .get('/estadisticas/evolucion?user_id=1')
+      .get('/estadisticas/evolucion?user_id=23')
       .expect(200);
     expect(Array.isArray(res.body)).toBe(true);
   });
 
   it('GET /estadisticas/distribucion', async () => {
     const res = await request(app.getHttpServer())
-      .get('/estadisticas/distribucion?user_id=1')
+      .get('/estadisticas/distribucion?user_id=23')
       .expect(200);
     expect(res.body).toHaveProperty('Normal');
   });
 
   it('GET /estadisticas/variacion', async () => {
     const res = await request(app.getHttpServer())
-      .get('/estadisticas/variacion?user_id=1')
+      .get('/estadisticas/variacion?user_id=23')
       .expect(200);
     expect(res.body).toHaveProperty('variacion_imc');
   });
