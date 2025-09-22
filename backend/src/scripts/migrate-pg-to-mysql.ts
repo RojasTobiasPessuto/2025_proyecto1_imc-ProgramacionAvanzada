@@ -46,7 +46,8 @@ async function migrate() {
     const myUserRepo = my.getRepository(User);
     const myImcRepo = my.getRepository(ImcRecord);
 
-    console.log('Reading users from Postgres...');
+    //Migración de usuarios
+    console.log('Lectura de usuarios desde Postgres...');
     const users = await pgUserRepo.find();
     console.log(`Users: ${users.length}`);
 
@@ -64,10 +65,11 @@ async function migrate() {
         )
         .orIgnore()
         .execute();
-      console.log('Users inserted into MySQL');
+      console.log('Usuarios insertados en MySQL');
     }
 
-    console.log('Reading IMC records from Postgres...');
+    //Migración de registros IMC
+    console.log('Lectura de registros IMC desde Postgres...');
     const imcs = await pgImcRepo.find();
     console.log(`IMC records: ${imcs.length}`);
 
@@ -88,22 +90,24 @@ async function migrate() {
         )
         .orIgnore()
         .execute();
-      console.log('IMC records inserted into MySQL');
+      console.log('Registros IMC insertados en MySQL');
     }
-
+    //Cuenta cuántos registros quedaron en MySQL para verificar la migración.
     const [myUsersCount, myImcCount] = await Promise.all([myUserRepo.count(), myImcRepo.count()]);
     console.log(`MySQL counts -> users: ${myUsersCount}, imc_records: ${myImcCount}`);
+
+    //Cierre de conexiones
   } finally {
     await Promise.allSettled([pg.destroy(), my.destroy()]);
   }
 }
-
+//Ejecuta la migración.
 migrate()
   .then(() => {
-    console.log('Migration finished successfully');
+    console.log('La migración se ha completado correctamente.');
     process.exit(0);
   })
   .catch((err) => {
-    console.error('Migration failed:', err);
+    console.error('Migración fallida:', err);
     process.exit(1);
   });

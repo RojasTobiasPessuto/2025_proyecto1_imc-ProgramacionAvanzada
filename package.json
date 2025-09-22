@@ -5,11 +5,19 @@
     "tailwindcss": "^4.1.13"
   },
   "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
     "postinstall": "npm --prefix backend install",
     "build": "npm --prefix backend run build",
     "start": "node backend/dist/main.js"
   },
   "engines": {
     "node": "20.x"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "jest": "^30.1.3",
+    "ts-jest": "^29.4.2"
   }
 }

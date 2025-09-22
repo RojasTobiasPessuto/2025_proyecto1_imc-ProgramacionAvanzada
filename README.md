@@ -125,3 +125,66 @@ También hicimos un test automático para corroborar el registro en la base de d
 ## Base de datos
 ![Base de datos IMC](./images/basededatos-imc.png)
 ![Base de datos Usuarios](./images/basededatos-user.png)
+
+---
+
+# Migración de Base de Datos: PostgreSQL → MySQL
+
+Esta sección documenta cómo migramos los datos desde PostgreSQL (Supabase) hacia MySQL (Railway) y cómo dejamos el backend listo para usar MySQL. Incluye variables de entorno, comandos, validaciones y una comparación técnica.
+
+## Estado del proyecto y archivos clave
+- Script de migración de datos: `backend/src/scripts/migrate-pg-to-mysql.ts`
+
+## Requisitos previos
+- Acceso a la base de datos origen (PostgreSQL en Supabase).
+- Acceso a la base de datos destino (MySQL en Railway, usar la URL pública).
+- Node 20.x y dependencias instaladas en `backend/`.
+
+## Variables de entorno para la migración
+Crear un archivo `backend/.env.migration` con las credenciales de ambas bases. Ejemplo:
+
+
+Notas:
+- El script de migración espera exactamente estos nombres de variables para MySQL: `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, `MYSQLDATABASE`.
+- Para Postgres usa: `PG_HOST`, `PG_PORT`, `PG_USER`, `PG_PASS`, `PG_NAME`, `PG_SSL`.
+
+## Ejecutar la migración de datos
+Desde la carpeta `backend/` ejecutar:
+
+```bash
+npx dotenv -e .env.migration -- npx ts-node src/scripts/migrate-pg-to-mysql.ts
+```
+
+Qué hace el script `migrate-pg-to-mysql.ts`:
+- Se conecta a Postgres (lectura) y a MySQL (escritura).
+- Crea el esquema en MySQL solo para esta corrida (`synchronize: true` en la conexión del script).
+- Copia `users` y luego `imc_records`, preservando IDs y relaciones (`user_id`).
+- Ignora inserciones duplicadas si ya existen.
+- Imprime conteos finales en MySQL para verificación.
+
+## Configurar el backend para usar MySQL
+Archivo: `backend/src/app.module.ts`
+- Está configurado con `type: 'mysql'` y `synchronize: false`.
+- Variables de entorno a definir en el servicio del backend (Render/Railway) para MySQL:
+
+## Ejecutar ambas tecnologías en paralelo por rama (opcional para la entrega)
+- `main` → PostgreSQL (estado original). Repositorio Original
+- `main` → MySQL. Repositorio Forkeado del Repo Origina
+
+## Comparativa técnica: PostgreSQL vs MySQL (resumen)
+- Postgres
+  - Tipos avanzados (JSONB, arrays, `timestamptz`), CTEs.
+  - Consistencia fuerte y ecosistema como Supabase.
+- MySQL
+  - Amplio soporte, costos competitivos, muy usado en OLTP simple.
+  - En TypeORM, `numeric` se mapea a `DECIMAL`, `uuid` suele ser `VARCHAR(36)`, timestamps como `TIMESTAMP/DATETIME`. Cambios Efectuados
+
+Justificación: si no se usan features específicas de Postgres y priorizamos el hosting/costo/soporte del proveedor, MySQL es válido. Si se requieren tipos/consultas avanzadas y ya se aprovecha Supabase, Postgres es sólido.
+
+## Solución de problemas (troubleshooting)
+- Error de conexión MySQL desde Render: confirmar que NO uses `mysql.railway.internal` (host interno) y sí el host/puerto públicos de Railway. Tampco nos dejaba con el publico. Por esta razon se opto por desplega el back directamente en railway para solucionar el problema de conexion.
+
+## Evidencias sugeridas para la entrega
+- Capturas de conteos antes/después de la migración.
+- Logs de consola del script mostrando cantidades migradas.
+- Pruebas de API contra el backend con MySQL (crear usuario, login, crear/listar IMC).
