@@ -13,7 +13,7 @@ import {
   ArcElement,
   RadialLinearScale,
 } from "chart.js";
-import { ImcRecord } from "../App";
+import { useQuery } from "@tanstack/react-query";
 
 ChartJS.register(
   CategoryScale,
@@ -28,17 +28,33 @@ ChartJS.register(
   RadialLinearScale
 );
 
-interface EstadisticasProps {
-  records: ImcRecord[];
+interface ImcRecord {
+  id: string;
+  pesoKg: number;
+  alturaM: number;
+  imc: number;
+  categoria: string;
+  createdAt: string;
+  user_id: number;
 }
 
-export default function Estadisticas({ records }: EstadisticasProps) {
+interface EstadisticasProps {
+  userId: number;
+}
+
+const API = import.meta.env.VITE_API_URL_BACK || import.meta.env.VITE_API_URL;
+
+export default function Estadisticas({ userId }: EstadisticasProps) {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  if (!records || records.length === 0) {
-    return <p className="text-slate-400">No hay datos para mostrar estadísticas.</p>;
-  }
+  const { data: records = [], isLoading } = useQuery<ImcRecord[]>({
+  queryKey: ["estadisticas", userId],
+  queryFn: () =>
+    fetch(`${API}/api/estadisticas/evolucion?user_id=${userId}`).then((res) =>
+      res.json()
+    ),
+  });
 
   // Filtrar y ordenar
   const sorted = useMemo(() => {
@@ -53,7 +69,9 @@ export default function Estadisticas({ records }: EstadisticasProps) {
         return true;
       })
       .sort(
-        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+        (a, b) =>
+          new Date(a.createdAt).getTime() -
+          new Date(b.createdAt).getTime()
       );
   }, [records, startDate, endDate]);
 
@@ -76,7 +94,10 @@ export default function Estadisticas({ records }: EstadisticasProps) {
 
     sorted.forEach((r) => {
       const fecha = new Date(r.createdAt);
-      const mes = fecha.toLocaleString("es-ES", { month: "long", year: "numeric" });
+      const mes = fecha.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
       if (!agrupados[mes]) agrupados[mes] = [];
       agrupados[mes].push(Number(r.imc));
     });
@@ -84,7 +105,8 @@ export default function Estadisticas({ records }: EstadisticasProps) {
     return Object.keys(agrupados).map((mes) => ({
       mes,
       promedio:
-        agrupados[mes].reduce((a, b) => a + b, 0) / agrupados[mes].length,
+        agrupados[mes].reduce((a, b) => a + b, 0) /
+        agrupados[mes].length,
     }));
   }, [sorted]);
 
@@ -155,16 +177,21 @@ export default function Estadisticas({ records }: EstadisticasProps) {
 
     records.forEach((r) => {
       const fecha = new Date(r.createdAt);
-      const mes = fecha.toLocaleString("es-ES", { month: "long", year: "numeric" });
+      const mes = fecha.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
       if (!grupos[mes]) grupos[mes] = [];
       grupos[mes].push(Number(r.imc));
     });
 
     return Object.keys(grupos).map((mes) => {
       const valores = grupos[mes];
-      const media = valores.reduce((a, b) => a + b, 0) / valores.length;
+      const media =
+        valores.reduce((a, b) => a + b, 0) / valores.length;
       const desviacionPromedio =
-        valores.reduce((a, b) => a + Math.abs(b - media), 0) / valores.length;
+        valores.reduce((a, b) => a + Math.abs(b - media), 0) /
+        valores.length;
       return { mes, desviacion: desviacionPromedio };
     });
   }, [records]);
@@ -187,10 +214,21 @@ export default function Estadisticas({ records }: EstadisticasProps) {
       },
     ],
   };
+
+  if (isLoading)
+    return <p className="text-slate-400">Cargando estadísticas...</p>;
+  if (!records || records.length === 0) {
+    return (
+      <p className="text-slate-400">
+        No hay datos para mostrar estadísticas.
+      </p>
+    );
+  }
+
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">Estadísticas</h2>
-  
+
       {/* Filtros */}
       <div className="flex gap-4 mb-6">
         <input
@@ -206,34 +244,43 @@ export default function Estadisticas({ records }: EstadisticasProps) {
           className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
         />
       </div>
-  
+
       {/* Gráfico de líneas */}
       <div className="mt-8">
-        <h3 className="text-2xl font-semibold mb-4 text-center">Evolución de Peso e IMC</h3>
+        <h3 className="text-2xl font-semibold mb-4 text-center">
+          Evolución de Peso e IMC
+        </h3>
         <Line data={lineData} />
       </div>
-  
+
       {/* Gráfico de barras */}
       {promediosMensuales.length > 0 && (
         <div className="mt-8">
-          <h3 className="text-2xl font-semibold mb-4 text-center">Promedio Mensual de IMC</h3>
+          <h3 className="text-2xl font-semibold mb-4 text-center">
+            Promedio Mensual de IMC
+          </h3>
           <Bar data={barData} />
         </div>
       )}
-  
+
       {/* Pie y Polar Area juntos */}
-      {Object.keys(conteoCategorias).length > 0 && variacionMensual.length > 0 && (
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div>
-            <h3 className="text-2xl font-semibold mb-4 text-center">Distribución por Categoría Total</h3>
-            <Pie data={pieData} />
+      {Object.keys(conteoCategorias).length > 0 &&
+        variacionMensual.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Distribución por Categoría Total
+              </h3>
+              <Pie data={pieData} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Variación Promedio Mensual (IMC)
+              </h3>
+              <PolarArea data={polarData} />
+            </div>
           </div>
-          <div>
-            <h3 className="text-2xl font-semibold mb-4 text-center">Variación Promedio Mensual (IMC)</h3>
-            <PolarArea data={polarData} />
-          </div>
-        </div>
-      )}
+        )}
     </div>
   );
 }

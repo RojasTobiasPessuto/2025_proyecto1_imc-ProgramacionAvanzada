@@ -1,0 +1,1066 @@
+Tengo el problema que no me carga los datos de la estadistica.
+
+
+Donde lo que se hizo para esta actividad:
+
+Integration Tests (nuevos y obligatorios en Entrega 3)
+
+Verifican que el backend interactúe correctamente con la base de datos y exponga resultados esperados a través de endpoints.
+
+Ejemplos concretos para esta entrega:
+
+GET /estadisticas/promedio → devuelve { "promedio": 23.4 }.
+
+GET /estadisticas/evolucion → devuelve un array ordenado por fecha.
+
+GET /estadisticas/distribucion → devuelve { "Normal": 50, "Sobrepeso": 30, ... }.
+
+GET /estadisticas/variacion → devuelve { "variacion_imc": -2.1 }.
+
+Deben correr con un dataset de prueba (mínimo 100 registros, como pide la consigna).
+
+Si usás autenticación: simular login con JWT y verificar que solo devuelve datos de ese usuario.
+
+👉 La cobertura exigida (>75%) se calcula sobre el módulo de estadísticas (endpoints + consultas), no sobre todo el sistema.
+
+
+
+Lo que tengo implementado Es lo siguiente:
+
+backend
+app.module.ts
+
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ImcModule } from './module/imc/imc.module';
+import { User } from './module/imc/entities/user.entity';
+import { ImcRecord } from './module/imc/entities/imc-record.entity';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './module/auth/auth.module';
+import { EstadisticasModule } from './module/estadisticas/estadisticas.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: process.env.DB_HOST,
+      port: parseInt(process.env.DB_PORT || '6543', 10),
+      username: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      entities: [User, ImcRecord],
+      autoLoadEntities: true,
+      synchronize: false,
+      ssl: {
+        rejectUnauthorized: false,
+      },
+      extra: {
+        max: 5,
+      },
+    }),
+    AuthModule,
+    ImcModule,
+    EstadisticasModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+
+
+
+EstadisticasController
+import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
+import { EstadisticasService } from './estadisticas.service';
+
+@Controller('estadisticas')
+export class EstadisticasController {
+  constructor(private readonly service: EstadisticasService) {}
+
+  private parseUser(user_id: string) {
+    const n = Number(user_id);
+    if (!user_id || isNaN(n)) {
+      throw new BadRequestException('user_id inválido');
+    }
+    return n;
+  }
+
+  @Get('promedio')
+  promedio(@Query('user_id') user_id: string) {
+    return this.service.promedio(this.parseUser(user_id));
+  }
+
+  @Get('evolucion')
+  evolucion(@Query('user_id') user_id: string) {
+    return this.service.evolucion(this.parseUser(user_id));
+  }
+
+  @Get('distribucion')
+  distribucion(@Query('user_id') user_id: string) {
+    return this.service.distribucion(this.parseUser(user_id));
+  }
+
+  @Get('variacion')
+  variacion(@Query('user_id') user_id: string) {
+    return this.service.variacion(this.parseUser(user_id));
+  }
+}
+
+Estadisticas.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { EstadisticasService } from './estadisticas.service';
+import { EstadisticasController } from './estadisticas.controller';
+import { ImcRecord } from '../imc/entities/imc-record.entity';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([ImcRecord])],
+  controllers: [EstadisticasController],
+  providers: [EstadisticasService],
+})
+export class EstadisticasModule {}
+
+Estadisticas.service.ts
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ImcRecord } from '../imc/entities/imc-record.entity';
+
+@Injectable()
+export class EstadisticasService {
+  constructor(
+    @InjectRepository(ImcRecord)
+    private readonly repo: Repository<ImcRecord>,
+  ) {}
+
+  async promedio(user_id: number) {
+    const records = await this.repo.find({ where: { user_id } });
+    if (records.length === 0) return { promedio: 0 };
+    const sum = records.reduce((a, r) => a + Number(r.imc), 0);
+    return { promedio: sum / records.length };
+  }
+
+  async evolucion(user_id: number) {
+    return this.repo.find({
+      where: { user_id },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async distribucion(user_id: number) {
+    const records = await this.repo.find({ where: { user_id } });
+    const counts: Record<string, number> = {};
+    records.forEach((r) => {
+      counts[r.categoria] = (counts[r.categoria] || 0) + 1;
+    });
+    return counts;
+  }
+
+  async variacion(user_id: number) {
+    const records = await this.repo.find({ where: { user_id }, order: { createdAt: 'ASC' } });
+    if (records.length < 2) return { variacion_imc: 0 };
+
+    const primero = records[0].imc;
+    const ultimo = records[records.length - 1].imc;
+
+    return { variacion_imc: ultimo - primero };
+  }
+}
+
+estadisticas.e2e-spec.ts
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication } from '@nestjs/common';
+import * as request from 'supertest';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { EstadisticasModule } from '../src/module/estadisticas/estadisticas.module';
+import { ImcRecord } from '../src/module/imc/entities/imc-record.entity';
+import { Repository } from 'typeorm';
+
+describe('Estadisticas (e2e)', () => {
+  let app: INestApplication;
+  let repo: Repository<ImcRecord>;
+  const testUserId = 1;
+
+  beforeAll(async () => {
+    const moduleFixture: TestingModule = await Test.createTestingModule({
+      imports: [
+        TypeOrmModule.forRoot({
+          type: 'sqlite',
+          database: ':memory:',
+          entities: [ImcRecord],
+          synchronize: true,
+        }),
+        EstadisticasModule,
+      ],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    repo = moduleFixture.get<Repository<ImcRecord>>(getRepositoryToken(ImcRecord));
+    await app.init();
+
+    // Insertar dataset
+    for (let i = 0; i < 100; i++) {
+      await repo.save({
+        pesoKg: 70 + (i % 5),
+        alturaM: 1.75,
+        imc: (70 + (i % 5)) / (1.75 * 1.75),
+        categoria: i % 2 === 0 ? 'Normal' : 'Sobrepeso',
+        user_id: testUserId,
+        createdAt: new Date(2025, 0, 1 + i),
+      });
+    }
+  });
+
+  it('GET /estadisticas/promedio', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/promedio?user_id=1')
+      .expect(200);
+    expect(res.body).toHaveProperty('promedio');
+  });
+
+  it('GET /estadisticas/evolucion', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/evolucion?user_id=1')
+      .expect(200);
+    expect(Array.isArray(res.body)).toBe(true);
+  });
+
+  it('GET /estadisticas/distribucion', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/distribucion?user_id=1')
+      .expect(200);
+    expect(res.body).toHaveProperty('Normal');
+  });
+
+  it('GET /estadisticas/variacion', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/variacion?user_id=1')
+      .expect(200);
+    expect(res.body).toHaveProperty('variacion_imc');
+  });
+
+  afterAll(async () => {
+    await app.close();
+  });
+});
+
+FRONTEND
+
+Estadisticas.tsx
+import { useMemo, useState } from "react";
+import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale,
+} from "chart.js";
+import { useQuery } from "@tanstack/react-query";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale
+);
+
+interface ImcRecord {
+  id: string;
+  pesoKg: number;
+  alturaM: number;
+  imc: number;
+  categoria: string;
+  createdAt: string;
+  user_id: number;
+}
+
+interface EstadisticasProps {
+  userId: number;
+}
+
+export default function Estadisticas({ userId }: EstadisticasProps) {
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  // 🚀 Traemos la evolución desde el backend según el usuario logueado
+  const { data: records = [], isLoading } = useQuery<ImcRecord[]>({
+    queryKey: ["estadisticas", userId],
+    queryFn: () =>
+      fetch(`/api/estadisticas/evolucion?user_id=${userId}`).then((res) =>
+        res.json()
+      ),
+  });
+
+  if (isLoading)
+    return <p className="text-slate-400">Cargando estadísticas...</p>;
+  if (!records || records.length === 0) {
+    return (
+      <p className="text-slate-400">
+        No hay datos para mostrar estadísticas.
+      </p>
+    );
+  }
+
+  // Filtrar y ordenar
+  const sorted = useMemo(() => {
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    return [...records]
+      .filter((r) => {
+        const d = new Date(r.createdAt);
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() -
+          new Date(b.createdAt).getTime()
+      );
+  }, [records, startDate, endDate]);
+
+  // Labels en el eje X
+  const labels = sorted.map((r) =>
+    new Date(r.createdAt).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    })
+  );
+
+  // Datos para peso e IMC
+  const pesoData = sorted.map((r) => r.pesoKg);
+  const imcData = sorted.map((r) => r.imc);
+
+  // Promedios mensuales
+  const promediosMensuales = useMemo(() => {
+    const agrupados: { [mes: string]: number[] } = {};
+
+    sorted.forEach((r) => {
+      const fecha = new Date(r.createdAt);
+      const mes = fecha.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
+      if (!agrupados[mes]) agrupados[mes] = [];
+      agrupados[mes].push(Number(r.imc));
+    });
+
+    return Object.keys(agrupados).map((mes) => ({
+      mes,
+      promedio:
+        agrupados[mes].reduce((a, b) => a + b, 0) /
+        agrupados[mes].length,
+    }));
+  }, [sorted]);
+
+  // Data para gráfico de líneas
+  const lineData = {
+    labels,
+    datasets: [
+      {
+        label: "Peso (kg)",
+        data: pesoData,
+        borderColor: "rgb(59, 130, 246)", // azul
+        backgroundColor: "rgba(59, 130, 246, 0.5)",
+      },
+      {
+        label: "IMC",
+        data: imcData,
+        borderColor: "rgb(16, 185, 129)", // verde
+        backgroundColor: "rgba(16, 185, 129, 0.5)",
+      },
+    ],
+  };
+
+  // Data para gráfico de barras
+  const barData = {
+    labels: promediosMensuales.map((d) => d.mes),
+    datasets: [
+      {
+        label: "Promedio IMC",
+        data: promediosMensuales.map((d) => d.promedio),
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Conteo por categoría (para Pie)
+  const conteoCategorias = useMemo(() => {
+    const counts: { [cat: string]: number } = {};
+    records.forEach((r) => {
+      counts[r.categoria] = (counts[r.categoria] || 0) + 1;
+    });
+    return counts;
+  }, [records]);
+
+  const pieData = {
+    labels: Object.keys(conteoCategorias),
+    datasets: [
+      {
+        label: "Cantidad",
+        data: Object.values(conteoCategorias),
+        backgroundColor: [
+          "rgba(16, 185, 129, 0.6)", // verde
+          "rgba(59, 130, 246, 0.6)", // azul
+          "rgba(250, 204, 21, 0.6)", // amarillo
+          "rgba(239, 68, 68, 0.6)", // rojo
+          "rgba(148, 163, 184, 0.6)", // gris
+        ],
+        borderColor: "rgba(255,255,255,1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Variación mensual (para Polar Area)
+  const variacionMensual = useMemo(() => {
+    const grupos: { [mes: string]: number[] } = {};
+
+    records.forEach((r) => {
+      const fecha = new Date(r.createdAt);
+      const mes = fecha.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
+      if (!grupos[mes]) grupos[mes] = [];
+      grupos[mes].push(Number(r.imc));
+    });
+
+    return Object.keys(grupos).map((mes) => {
+      const valores = grupos[mes];
+      const media =
+        valores.reduce((a, b) => a + b, 0) / valores.length;
+      const desviacionPromedio =
+        valores.reduce((a, b) => a + Math.abs(b - media), 0) /
+        valores.length;
+      return { mes, desviacion: desviacionPromedio };
+    });
+  }, [records]);
+
+  const polarData = {
+    labels: variacionMensual.map((d) => d.mes),
+    datasets: [
+      {
+        label: "Variación Promedio (IMC)",
+        data: variacionMensual.map((d) => d.desviacion),
+        backgroundColor: [
+          "rgba(59, 130, 246, 0.6)",
+          "rgba(16, 185, 129, 0.6)",
+          "rgba(250, 204, 21, 0.6)",
+          "rgba(239, 68, 68, 0.6)",
+          "rgba(148, 163, 184, 0.6)",
+        ],
+        borderColor: "rgba(255,255,255,1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-4">Estadísticas</h2>
+
+      {/* Filtros */}
+      <div className="flex gap-4 mb-6">
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
+        />
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
+        />
+      </div>
+
+      {/* Gráfico de líneas */}
+      <div className="mt-8">
+        <h3 className="text-2xl font-semibold mb-4 text-center">
+          Evolución de Peso e IMC
+        </h3>
+        <Line data={lineData} />
+      </div>
+
+      {/* Gráfico de barras */}
+      {promediosMensuales.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-2xl font-semibold mb-4 text-center">
+            Promedio Mensual de IMC
+          </h3>
+          <Bar data={barData} />
+        </div>
+      )}
+
+      {/* Pie y Polar Area juntos */}
+      {Object.keys(conteoCategorias).length > 0 &&
+        variacionMensual.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Distribución por Categoría Total
+              </h3>
+              <Pie data={pieData} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Variación Promedio Mensual (IMC)
+              </h3>
+              <PolarArea data={polarData} />
+            </div>
+          </div>
+        )}
+    </div>
+  );
+}
+
+imcHistorial.tsx
+import { useState, useMemo } from "react";
+import { ImcRecord } from '../App';
+
+
+interface ImcHistorialProps {
+  records: ImcRecord[];
+  loading: boolean;
+}
+
+// Iconos SVG
+
+
+const ClearIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Filtrar historial por fechas
+  const filteredRecords = useMemo(() => {
+    if (!startDate && !endDate) return records;
+
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    
+    // Ajustar la hora para incluir el día completo
+    if(start) start.setHours(0, 0, 0, 0);
+    if(end) end.setHours(23, 59, 59, 999);
+
+    return records.filter(record => {
+      const recordDate = new Date(record.createdAt);
+      if (start && end) return recordDate >= start && recordDate <= end;
+      if (start) return recordDate >= start;
+      if (end) return recordDate <= end;
+      return true;
+    });
+  }, [records, startDate, endDate]);
+
+  const clearFilters = () => {
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const getCategoryColor = (categoria: string) => {
+    switch (categoria) {
+      case 'Normal': return 'text-green-400';
+      case 'Bajo peso': return 'text-blue-400';
+      case 'Sobrepeso': return 'text-yellow-400';
+      default: return categoria.includes('Obesidad') ? 'text-red-400' : 'text-slate-400';
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h2 className="font-semibold text-2xl">Historial de cálculos</h2>
+        <div className="flex items-center gap-4 flex-wrap">
+          <input 
+            type="date" 
+            value={startDate} 
+            onChange={(e) => setStartDate(e.target.value)} 
+            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+          />
+          <span className="text-slate-400">-</span>
+          <input 
+            type="date" 
+            value={endDate} 
+            onChange={(e) => setEndDate(e.target.value)} 
+            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+          />
+          <button 
+            onClick={clearFilters} 
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700/80 rounded-lg hover:bg-slate-600/80 transition"
+          >
+            <ClearIcon/> Limpiar
+          </button>
+        </div>
+      </div>
+      
+      <div className="h-64 overflow-y-auto pr-2">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-slate-400">Cargando...</div>
+          </div>
+        ) : filteredRecords.length > 0 ? (
+          <table className="w-full text-left">
+            <thead className="sticky top-0 bg-slate-900/60 backdrop-blur-sm">
+              <tr>
+                {['Fecha', 'Peso', 'Altura', 'IMC', 'Categoría'].map(h => (
+                  <th key={h} className="py-3 px-3 font-semibold text-slate-300 border-b border-slate-700 text-sm">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+  {filteredRecords.map((r) => (
+    <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {new Date(r.createdAt).toLocaleDateString('es-ES')}
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {r.pesoKg} kg
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {r.alturaM} m
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
+        {Number(r.imc).toFixed(2)}
+      </td>
+      <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
+        {r.categoria}
+      </td>
+    </tr>
+  ))}
+</tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
+            <p className="font-medium text-lg">No hay datos que mostrar</p>
+            <p className="text-sm mt-1">Prueba a cambiar los filtros o añade un nuevo cálculo.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+app.tsx
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ImcForm from './ImcForm';
+import ImcHistorial from './components/ImcHistorial';
+import Login from './components/Login';
+import Register from './components/Register';
+import Estadisticas from './components/Estadisticas';
+
+const API = import.meta.env.VITE_API_URL;
+
+export interface ImcRecord {
+  id: number;
+  pesoKg: number;
+  alturaM: number;
+  imc: number;
+  categoria: string;
+  createdAt: string;
+}
+
+export interface ImcResult {
+  imc: number;
+  categoria: string;
+}
+
+export default function App() {
+  const [records, setRecords] = useState<ImcRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<ImcResult | null>(null);
+  const [user, setUser] = useState(() => {
+    // Intenta recuperar el usuario del localStorage
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const fetchRecords = async () => {
+  setLoading(true);
+  try {
+    // Usa el id del usuario guardado en el estado
+    if (!user || !user.id) {
+      throw new Error('No hay usuario logueado');
+    }
+    const response = await axios.get(`${API}/api/imc/historial`, {
+      params: { user_id: user.id }
+    });
+    setRecords(response.data);
+  } catch (error) {
+    console.error('Error fetching records:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
+    if (user) fetchRecords();
+  }, [user]);
+
+  // Función para manejar login exitoso
+  const handleLogin = (userData: any) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  // Función para logout
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // Estado y refs para el menú de perfil
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+
+  // Cierra el dropdown si se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Iconos SVG
+  const UserIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  );
+
+  const LogoutIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+      <polyline points="16 17 21 12 16 7"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  );
+
+  // Página principal protegida
+  const MainPage = () => (
+    <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1a1a3d] to-[#3a0ca3] flex items-center justify-center font-sans p-4 text-white" style={{ position: 'relative' }}>
+      {/* Menú de perfil superior derecho */}
+      {user && (
+        <div ref={profileRef} style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            style={{
+              padding: 8,
+              borderRadius: 9999,
+              background: 'rgba(15,23,42,0.6)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white',
+            }}
+            aria-label="Abrir menú de perfil"
+          >
+            <UserIcon />
+          </button>
+          {isProfileOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              marginTop: 8,
+              width: 256,
+              background: 'rgba(15,23,42,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12,
+              boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+              padding: 16,
+            }}>
+              <div style={{ borderBottom: '1px solid #334155', paddingBottom: 12, marginBottom: 12 }}>
+                <p style={{ fontSize: 12, color: '#94a3b8' }}>Sesión iniciada como:</p>
+                <p style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  fontSize: 14,
+                  color: '#fca5a5',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                }}
+              >
+                <LogoutIcon /> Cerrar Sesión
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="w-full max-w-6xl space-y-8">
+      <header className="text-center">
+        <h1 className="text-5xl font-bold">Calculadora de IMC</h1>
+      </header>
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <ImcForm
+          onSuccess={fetchRecords}
+          resultado={resultado}
+          setResultado={setResultado}
+        />
+      </div>
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <ImcHistorial records={records} loading={loading} />
+      </div>
+
+      {/* 👇 Nuevo bloque de estadísticas */}
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <Estadisticas userId={user.id} />
+      </div>
+    </div>
+  </div>
+);
+
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+        <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
+        <Route path="/" element={user ? <MainPage /> : <Navigate to="/login" />} />
+        {/* Puedes agregar más rutas protegidas aquí */}
+      </Routes>
+    </Router>
+  );
+}
+
+imcform.tsx
+import axios from "axios";
+import React, { useState } from "react";
+
+const API = import.meta.env.VITE_API_URL;
+
+interface ImcResult {
+  imc: number;
+  categoria: string;
+}
+
+interface ImcFormProps {
+  onSuccess: () => void;
+  resultado: ImcResult | null;
+  setResultado: (r: ImcResult | null) => void;
+}
+
+// Icono de calculadora
+const CalculatorIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+    <line x1="8" y1="6" x2="16" y2="6"></line>
+    <line x1="16" y1="10" x2="16" y2="14"></line>
+    <line x1="12" y1="10" x2="12" y2="14"></line>
+    <line x1="8" y1="10" x2="8" y2="14"></line>
+    <line x1="8" y1="18" x2="16" y2="18"></line>
+  </svg>
+);
+
+function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
+  const [altura, setAltura] = useState("");
+  const [peso, setPeso] = useState("");
+  const [errores, setErrores] = useState<string[]>([]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+    const alturaNum = parseFloat(altura);
+    const pesoNum = parseFloat(peso);
+
+    const nuevosErrores: string[] = [];
+
+    // Validaciones avanzadas
+    if (isNaN(alturaNum) || alturaNum <= 0 || alturaNum >= 3) {
+      nuevosErrores.push(
+        "La altura debe ser un número válido mayor que 0 y menor a 3 metros."
+      );
+    }
+
+    if (isNaN(pesoNum) || pesoNum <= 0 || pesoNum >= 500) {
+      nuevosErrores.push(
+        "El peso debe ser un número válido mayor que 0 y menor a 500 kg."
+      );
+    }
+
+    if (nuevosErrores.length > 0) {
+      setErrores(nuevosErrores);
+      setResultado(null);
+      return;
+    }
+
+    try {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const user_id = user.id;
+    if (!user_id) {
+      setErrores(['No hay usuario logueado.']);
+      setResultado(null);
+      return;
+    }
+
+      const response = await axios.post(`${API}/api/imc/calcular`, {
+      altura: alturaNum,
+      peso: pesoNum,
+      user_id,
+    });
+    setResultado(response.data); // Luego muestra el resultado
+    setErrores([]);
+    onSuccess(); // Primero recarga el historial
+
+    // Opcional: limpiar campos
+    // setAltura("");
+    // setPeso("");
+  } catch (err) {
+    setErrores([
+      "Error al calcular el IMC. Verifica si el backend está corriendo.",
+    ]);
+    setResultado(null);
+  }
+};
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      {/* Formulario */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="altura" className="block text-sm font-medium text-slate-300 mb-2">
+            Altura (m)
+          </label>
+          <input
+            type="number"
+            id="altura"
+            value={altura}
+            onChange={(e) => setAltura(e.target.value)}
+            step="0.01"
+            min="0.1"
+            placeholder="Ej: 1.75"
+            className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
+          />
+        </div>
+        
+        <div>
+          <label htmlFor="peso" className="block text-sm font-medium text-slate-300 mb-2">
+            Peso (kg)
+          </label>
+          <input
+            type="number"
+            id="peso"
+            value={peso}
+            onChange={(e) => setPeso(e.target.value)}
+            min="1"
+            placeholder="Ej: 70.5"
+            className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
+          />
+        </div>
+
+        {/* Mostrar errores */}
+        {errores.length > 0 && (
+          <div className="bg-red-900/20 border border-red-500/30 rounded-lg p-4">
+            <ul className="text-red-400 text-sm space-y-1">
+              {errores.map((err, index) => (
+                <li key={index}>• {err}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        <button 
+          type="submit" 
+          className="w-full flex items-center justify-center gap-2 bg-purple-600 font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-400/50 transition-transform transform hover:scale-105 shadow-lg shadow-purple-500/30"
+        >
+          <CalculatorIcon /> Calcular IMC
+        </button>
+      </form>
+
+      {/* Resultado */}
+      <div className="flex items-center justify-center">
+  {resultado ? (
+    <div className="text-center bg-slate-800/50 p-6 rounded-lg w-full">
+      <p className="text-lg text-slate-300 mb-4">Tu resultado más reciente:</p>
+      <p className="text-6xl font-bold text-white my-2">{resultado.imc.toFixed(2)}</p>
+      <p className={`text-2xl font-semibold ${
+        resultado.categoria === 'Normal' ? 'text-green-400' :
+        resultado.categoria === 'Bajo peso' ? 'text-blue-400' :
+        resultado.categoria === 'Sobrepeso' ? 'text-yellow-400' :
+        resultado.categoria.includes('Obesidad') ? 'text-red-400' : 'text-slate-400'
+      }`}>
+        {resultado.categoria}
+      </p>
+    </div>
+  ) : (
+    <div className="text-center text-slate-400 p-6">
+      <p>El resultado de tu cálculo aparecerá aquí.</p>
+    </div>
+  )}
+</div>
+    </div>
+  );
+}
+
+export default ImcForm;
+
+main.tsx
+// main.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+// 👇 Importamos lo necesario de React Query
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+// Creamos una instancia del cliente de queries
+const queryClient = new QueryClient()
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    {/* 👇 Envolvemos la App con el proveedor */}
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </React.StrictMode>,
+)
+
+.env
+VITE_API_URL=https://two025-proyecto1-imc.onrender.com
+

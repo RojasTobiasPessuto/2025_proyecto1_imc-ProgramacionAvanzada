@@ -176,7 +176,7 @@ export default function App() {
 
       {/* 👇 Nuevo bloque de estadísticas */}
       <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
-        <Estadisticas records={records} />
+        <Estadisticas userId={user.id} />
       </div>
     </div>
   </div>
