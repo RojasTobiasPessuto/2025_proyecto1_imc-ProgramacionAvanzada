@@ -1,3 +1,4 @@
+//imc.controller.ts
 import { Controller, Post, Get, Body, Query, BadRequestException } from '@nestjs/common';
 import { ImcService } from './imc.service';
 import { CalcularImcDto } from './dto/calcular-imc-dto';
