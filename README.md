@@ -125,3 +125,54 @@ También hicimos un test automático para corroborar el registro en la base de d
 ## Base de datos
 ![Base de datos IMC](./images/basededatos-imc.png)
 ![Base de datos Usuarios](./images/basededatos-user.png)
+
+
+
+
+## Comando en SQL para generar 100 cálculos de IMC entre Junio 2025 y Diciembre 2025
+DO $$
+DECLARE
+  i INT;
+  v_peso NUMERIC;
+  v_altura NUMERIC;
+  v_imc NUMERIC;
+  v_categoria VARCHAR;
+  v_fecha DATE;
+  meses DATE[] := ARRAY[
+    '2025-06-15'::date,
+    '2025-07-15'::date,
+    '2025-08-15'::date,
+    '2025-09-15'::date,
+    '2025-10-15'::date,
+    '2025-11-15'::date,
+    '2025-12-15'::date
+  ];
+BEGIN
+  FOR i IN 1..100 LOOP
+    -- peso entre 50 y 100 kg
+    v_peso := 50 + random() * 50;
+    -- altura entre 1.50 y 2.00 m
+    v_altura := 1.50 + random() * 0.50;
+    -- calcular IMC
+    v_imc := v_peso / (v_altura * v_altura);
+
+    -- asignar categoría
+    IF v_imc < 18.5 THEN
+      v_categoria := 'Bajo peso';
+    ELSIF v_imc < 25 THEN
+      v_categoria := 'Normal';
+    ELSIF v_imc < 30 THEN
+      v_categoria := 'Sobrepeso';
+    ELSE
+      v_categoria := 'Obesidad';
+    END IF;
+
+    -- elegir un mes al azar y un día dentro del mes
+    v_fecha := meses[1 + floor(random() * array_length(meses, 1))] 
+               + (floor(random() * 28) || ' days')::interval;
+
+    -- insertar registro
+    INSERT INTO imc_records (pesokg, alturam, imc, categoria, createdat, user_id)
+    VALUES (v_peso, v_altura, v_imc, v_categoria, v_fecha, 23);
+  END LOOP;
+END $$;

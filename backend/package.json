@@ -23,7 +23,6 @@
     "migrate:pg2mysql": "ts-node src/scripts/migrate-pg-to-mysql.ts"
 =======
     "prebuild": "rimraf dist"
->>>>>>> 1c2f831dc2cc1bc1e2dbc5304d2a08685046ee22
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -62,6 +61,7 @@
     "prettier": "^3.4.2",
     "rimraf": "^5.0.0",
     "source-map-support": "^0.5.21",
+    "sqlite3": "^5.1.7",
     "supertest": "^7.0.0",
     "ts-jest": "^29.4.1",
     "ts-loader": "^9.5.2",
