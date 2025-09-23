@@ -176,8 +176,4 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
   );
 }
 
-<<<<<<< HEAD
-export default ImcForm;
-=======
 export default ImcForm;
->>>>>>> origenISW/tobias-Programacion
