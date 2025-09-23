@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
 import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
+import { useQuery } from "@tanstack/react-query";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +15,6 @@ import {
   ArcElement,
   RadialLinearScale,
 } from "chart.js";
-import { useQuery } from "@tanstack/react-query";
 
 ChartJS.register(
   CategoryScale,
@@ -146,7 +147,7 @@ export default function Estadisticas({ userId }: EstadisticasProps) {
   // Conteo por categoría (para Pie)
   const conteoCategorias = useMemo(() => {
     const counts: { [cat: string]: number } = {};
-    records.forEach((r) => {
+    records.forEach((r: ImcRecord) => {
       counts[r.categoria] = (counts[r.categoria] || 0) + 1;
     });
     return counts;
@@ -175,7 +176,7 @@ export default function Estadisticas({ userId }: EstadisticasProps) {
   const variacionMensual = useMemo(() => {
     const grupos: { [mes: string]: number[] } = {};
 
-    records.forEach((r) => {
+    records.forEach((r: ImcRecord) => {
       const fecha = new Date(r.createdAt);
       const mes = fecha.toLocaleString("es-ES", {
         month: "long",
