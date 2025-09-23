@@ -31,7 +31,7 @@ export class ImcRecord {
   @Column({ name: 'user_id', nullable: true })
   user_id: number;
 
-  //@ManyToOne(() => User, user => user.imcRecords, { nullable: true, onDelete: 'SET NULL' })
+@ManyToOne(() => User, user => user.imcRecords, { nullable: true, onDelete: 'SET NULL' })
 @JoinColumn({ name: 'user_id' })   // 👈 Forzamos a usar la columna correcta
 user: User;
 
