@@ -18,6 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:all": "npm run test:cov && npm run test:e2e",
+    "test:all:cov": "jest --coverage && jest --config ./test/jest-e2e.json --coverage",
     "prebuild": "rimraf dist"
   },
   "dependencies": {
@@ -78,7 +80,11 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/estadisticas/**",
+      "!main.ts",
+      "!**/app.module.ts",
+      "!**/database/db.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
