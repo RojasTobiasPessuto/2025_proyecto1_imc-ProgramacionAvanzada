@@ -128,10 +128,77 @@ describe('Estadisticas (e2e)', () => {
   
     expect(res.body.message).toBe('user_id inválido');
   });
-  
+
+  it('GET /api/estadisticas/evolucion con usuario sin registros devuelve array vacío', async () => {
+    const emptyUserId = 7777;
+    await repo.delete({ user_id: emptyUserId });
+
+    const res = await request(app.getHttpServer())
+      .get(`/estadisticas/evolucion?user_id=${emptyUserId}`)
+      .expect(200);
+
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
+  });
+
+  it('GET /api/estadisticas/distribucion con usuario sin registros devuelve objeto vacío', async () => {
+    const emptyUserId = 6666;
+    await repo.delete({ user_id: emptyUserId });
+
+    const res = await request(app.getHttpServer())
+      .get(`/estadisticas/distribucion?user_id=${emptyUserId}`)
+      .expect(200);
+
+    expect(res.body).toEqual({});
+  });
+
+  it('GET /api/estadisticas/evolucion con user_id inválido devuelve 400', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/evolucion?user_id=invalid')
+      .expect(400);
+
+    expect(res.body.message).toBe('user_id inválido');
+  });
+
+  it('GET /api/estadisticas/distribucion con user_id inválido devuelve 400', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/distribucion?user_id=invalid')
+      .expect(400);
+
+    expect(res.body.message).toBe('user_id inválido');
+  });
+
+  it('GET /api/estadisticas/variacion con user_id inválido devuelve 400', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/variacion?user_id=invalid')
+      .expect(400);
+
+    expect(res.body.message).toBe('user_id inválido');
+  });
+
+  it('GET /api/estadisticas/promedio sin user_id devuelve 400', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/promedio')
+      .expect(400);
+
+    expect(res.body.message).toBe('user_id inválido');
+  });
+
+  it('GET /api/estadisticas/evolucion sin user_id devuelve 400', async () => {
+    const res = await request(app.getHttpServer())
+      .get('/estadisticas/evolucion')
+      .expect(400);
+
+    expect(res.body.message).toBe('user_id inválido');
+  });
 
   afterAll(async () => {
-    await repo.delete({ user_id: testUserId }); // Limpia los datos de prueba
+    // Limpiar todos los datos de prueba
+    await repo.delete({ user_id: testUserId });
+    await repo.delete({ user_id: 9999 });
+    await repo.delete({ user_id: 8888 });
+    await repo.delete({ user_id: 7777 });
+    await repo.delete({ user_id: 6666 });
     await app.close();
   });
 });

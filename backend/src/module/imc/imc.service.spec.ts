@@ -75,38 +75,78 @@ describe("ImcService", () => {
     expect(result.categoria).toBe("Obesidad");
   });
 
-  // Casos de historial
-  it("should return empty historial if no records found", async () => {
-    jest.spyOn(repo, "find").mockResolvedValueOnce([]);
-    const result = await service.listarHistorial(1);
-    expect(result).toEqual([]);
-    expect(repo.find).toHaveBeenCalled();
-  });
-
-  it("should return historial with records when found", async () => {
-    const fakeRecord = {
-  id: "uuid-5678",
-  user_id: 1,
-  pesoKg: 70,
-  alturaM: 1.75,
-  imc: 22.86,
-  categoria: "Normal",
-  createdAt: new Date("2025-01-02T00:00:00Z"),
-} as ImcRecord;
-
-    jest.spyOn(repo, "find").mockResolvedValueOnce([fakeRecord]);
-
-    const result = await service.listarHistorial(1, "2025-01-01", "2025-01-03");
-
-    expect(result).toHaveLength(1);
-    expect(result[0]).toMatchObject({
-      user_id: 1,
-      categoria: "Normal",
+  describe('listarHistorial', () => {
+    beforeEach(() => {
+      mockRepo.find.mockClear();
     });
-    expect(repo.find).toHaveBeenCalledWith(
-      expect.objectContaining({
-        where: expect.objectContaining({ user_id: 1 }),
-      }),
-    );
+
+    it('should filter by date range when both fechaInicio and fechaFin are provided', async () => {
+      const mockRecords = [{ id: '1', user_id: 1 }];
+      mockRepo.find.mockResolvedValue(mockRecords);
+
+      await service.listarHistorial(1, '2024-01-01', '2024-01-31');
+
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        where: {
+          user_id: 1,
+          createdAt: expect.any(Object), // Between object
+        },
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it('should filter by start date only when only fechaInicio is provided', async () => {
+      const mockRecords = [{ id: '1', user_id: 1 }];
+      mockRepo.find.mockResolvedValue(mockRecords);
+
+      await service.listarHistorial(1, '2024-01-01');
+
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        where: {
+          user_id: 1,
+          createdAt: expect.any(Object), // MoreThanOrEqual object
+        },
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it('should filter by end date only when only fechaFin is provided', async () => {
+      const mockRecords = [{ id: '1', user_id: 1 }];
+      mockRepo.find.mockResolvedValue(mockRecords);
+
+      await service.listarHistorial(1, undefined, '2024-01-31');
+
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        where: {
+          user_id: 1,
+          createdAt: expect.any(Object), // LessThanOrEqual object
+        },
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it('should not filter by date when no dates are provided', async () => {
+      const mockRecords = [{ id: '1', user_id: 1 }];
+      mockRepo.find.mockResolvedValue(mockRecords);
+
+      await service.listarHistorial(1);
+
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        where: { user_id: 1 },
+        order: { createdAt: 'DESC' },
+      });
+    });
+
+    it('should return empty array when no records found', async () => {
+      mockRepo.find.mockResolvedValue([]);
+
+      const result = await service.listarHistorial(999);
+
+      expect(result).toEqual([]);
+      expect(mockRepo.find).toHaveBeenCalledWith({
+        where: { user_id: 999 },
+        order: { createdAt: 'DESC' },
+      });
+    });
   });
 });
