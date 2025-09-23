@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { ImcRecord } from '../App';
 
+
 interface ImcHistorialProps {
   records: ImcRecord[];
   loading: boolean;

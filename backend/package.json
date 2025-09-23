@@ -18,7 +18,10 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:all": "npm run test:cov && npm run test:e2e",
+    "test:all:cov": "jest --coverage && jest --config ./test/jest-e2e.json --coverage",
+    "prebuild": "rimraf dist"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",
@@ -58,8 +61,13 @@
     "prettier": "^3.4.2",
     "rimraf": "^5.0.0",
     "source-map-support": "^0.5.21",
+    "sqlite3": "^5.1.7",
     "supertest": "^7.0.0",
+<<<<<<< HEAD
     "ts-jest": "^29.4.2",
+=======
+    "ts-jest": "^29.4.1",
+>>>>>>> origenISW/tobias-Programacion
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
@@ -78,7 +86,11 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "**/*.(t|j)s",
+      "!**/estadisticas/**",
+      "!main.ts",
+      "!**/app.module.ts",
+      "!**/database/db.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"

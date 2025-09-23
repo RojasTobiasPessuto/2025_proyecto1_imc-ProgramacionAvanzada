@@ -7,6 +7,7 @@ import { ImcRecord } from './module/imc/entities/imc-record.entity';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './module/auth/auth.module';
+import { EstadisticasModule } from './module/estadisticas/estadisticas.module';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { AuthModule } from './module/auth/auth.module';
     }),
     AuthModule,
     ImcModule,
-    
+    EstadisticasModule,
   ],
   controllers: [AppController],
   providers: [AppService],

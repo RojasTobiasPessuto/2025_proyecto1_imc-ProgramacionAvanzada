@@ -33,13 +33,21 @@ describe('AuthService', () => {
   });
 
   describe('register', () => {
+<<<<<<< HEAD
     it('debería lanzar si el correo electrónico ya existe', async () => {
+=======
+    it('should throw if email already exists', async () => {
+>>>>>>> origenISW/tobias-Programacion
       userRepo.findOne.mockResolvedValue({ id: 1, email: 'test@mail.com' });
       await expect(service.register('test@mail.com', '1234'))
         .rejects.toThrow(UnauthorizedException);
     });
 
+<<<<<<< HEAD
     it('Debe cifrar la contraseña y guardar el usuario.', async () => {
+=======
+    it('should hash password and save user', async () => {
+>>>>>>> origenISW/tobias-Programacion
       userRepo.findOne.mockResolvedValue(null);
       (bcrypt.hash as jest.Mock).mockResolvedValue('hashed123');
       userRepo.create.mockReturnValue({ email: 'new@mail.com', password: 'hashed123' });
@@ -53,20 +61,32 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
+<<<<<<< HEAD
     it('debería lanzar si no se encuentra el usuario', async () => {
+=======
+    it('should throw if user not found', async () => {
+>>>>>>> origenISW/tobias-Programacion
       userRepo.findOne.mockResolvedValue(null);
       await expect(service.login('no@mail.com', '1234'))
         .rejects.toThrow(UnauthorizedException);
     });
 
+<<<<<<< HEAD
     it('debería lanzar si la contraseña no es válida', async () => {
+=======
+    it('should throw if password invalid', async () => {
+>>>>>>> origenISW/tobias-Programacion
       userRepo.findOne.mockResolvedValue({ id: 1, email: 'test@mail.com', password: 'hashed' });
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
       await expect(service.login('test@mail.com', 'wrong'))
         .rejects.toThrow(UnauthorizedException);
     });
 
+<<<<<<< HEAD
     it('debe devolver los datos del usuario si el inicio de sesión se ha realizado correctamente', async () => {
+=======
+    it('should return user data if login successful', async () => {
+>>>>>>> origenISW/tobias-Programacion
       userRepo.findOne.mockResolvedValue({ id: 1, email: 'test@mail.com', password: 'hashed' });
       (bcrypt.compare as jest.Mock).mockResolvedValue(true);
 
@@ -75,4 +95,8 @@ describe('AuthService', () => {
       expect(bcrypt.compare).toHaveBeenCalledWith('1234', 'hashed');
     });
   });
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> origenISW/tobias-Programacion

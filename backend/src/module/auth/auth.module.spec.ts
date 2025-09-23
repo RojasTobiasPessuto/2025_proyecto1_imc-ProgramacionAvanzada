@@ -15,4 +15,8 @@ describe('AuthModule', () => {
     const module = moduleRef.get<AuthModule>(AuthModule);
     expect(module).toBeInstanceOf(AuthModule);
   });
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> origenISW/tobias-Programacion

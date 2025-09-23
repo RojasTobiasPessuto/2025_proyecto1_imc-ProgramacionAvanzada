@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> origenISW/tobias-Programacion
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
@@ -30,12 +33,20 @@ describe('AuthController', () => {
   });
 
   describe('register', () => {
+<<<<<<< HEAD
     it('debería lanzar una excepción BadRequestException si falta el correo electrónico o la contraseña.', async () => {
+=======
+    it('should throw BadRequestException if email or password is missing', async () => {
+>>>>>>> origenISW/tobias-Programacion
       await expect(controller.register({ email: '', password: '' }))
         .rejects.toThrow(BadRequestException);
     });
 
+<<<<<<< HEAD
     it('Debe llamar a AuthService.register con datos válidos.', async () => {
+=======
+    it('should call AuthService.register with valid data', async () => {
+>>>>>>> origenISW/tobias-Programacion
       mockAuthService.register.mockResolvedValue({ id: 1, email: 'test@mail.com' });
 
       const result = await controller.register({
@@ -49,12 +60,20 @@ describe('AuthController', () => {
   });
 
   describe('login', () => {
+<<<<<<< HEAD
     it('debería lanzar una excepción BadRequestException si falta el correo electrónico o la contraseña.', async () => {
+=======
+    it('should throw BadRequestException if email or password is missing', async () => {
+>>>>>>> origenISW/tobias-Programacion
       await expect(controller.login({ email: '', password: '' }))
         .rejects.toThrow(BadRequestException);
     });
 
+<<<<<<< HEAD
     it('Debe llamar a AuthService.login con datos válidos.', async () => {
+=======
+    it('should call AuthService.login with valid data', async () => {
+>>>>>>> origenISW/tobias-Programacion
       mockAuthService.login.mockResolvedValue({ token: 'jwt-token' });
 
       const result = await controller.login({
@@ -66,4 +85,8 @@ describe('AuthController', () => {
       expect(service.login).toHaveBeenCalledWith('test@mail.com', '1234');
     });
   });
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> origenISW/tobias-Programacion

@@ -1,21 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { CalcularImcDto } from "./dto/calcular-imc-dto";
-import { Repository, Between, MoreThanOrEqual, LessThanOrEqual } from "typeorm";
-import { InjectRepository } from "@nestjs/typeorm";
-import { ImcRecord } from "./entities/imc-record.entity";
+import { Injectable } from '@nestjs/common';
+import { CalcularImcDto } from './dto/calcular-imc-dto';
+import { ImcRepository } from './imc.repository';
+import { ImcRecord } from './entities/imc-record.entity';
 
 @Injectable()
 export class ImcService {
-  constructor(
-    @InjectRepository(ImcRecord)
-    private readonly repo: Repository<ImcRecord>,
-  ) {}
+  constructor(private readonly repo: ImcRepository) {}
 
   private categorizar(imc: number): string {
-    if (imc < 18.5) return "Bajo peso";
-    if (imc < 25) return "Normal";
-    if (imc < 30) return "Sobrepeso";
-    return "Obesidad";
+    if (imc < 18.5) return 'Bajo peso';
+    if (imc < 25) return 'Normal';
+    if (imc < 30) return 'Sobrepeso';
+    return 'Obesidad';
   }
 
   async calcularYGuardar(
@@ -27,7 +23,7 @@ export class ImcService {
 
     const categoria = this.categorizar(imcRedondeado);
 
-    const record = this.repo.create({
+    const saved = await this.repo.saveRecord({
       pesoKg: peso,
       alturaM: altura,
       imc: imcRedondeado,
@@ -35,37 +31,19 @@ export class ImcService {
       user_id,
     });
 
-    const saved = await this.repo.save(record);
-
     return {
       id: saved.id,
       imc: saved.imc,
       categoria: saved.categoria,
-      createdat: saved.createdAt, // 👈 importante: usamos createdAt mapeado a createdat
+      createdat: saved.createdAt,
     };
   }
 
   async listarHistorial(
     user_id: number,
     fechaInicio?: string,
-    fechaFin?: string
+    fechaFin?: string,
   ): Promise<ImcRecord[]> {
-    const where: any = { user_id };
-
-    if (fechaInicio && fechaFin) {
-      where.createdAt = Between(
-        new Date(fechaInicio),
-        new Date(fechaFin + "T23:59:59"),
-      );
-    } else if (fechaInicio) {
-      where.createdAt = MoreThanOrEqual(new Date(fechaInicio));
-    } else if (fechaFin) {
-      where.createdAt = LessThanOrEqual(new Date(fechaFin + "T23:59:59"));
-    }
-
-    return this.repo.find({
-      where,
-      order: { createdAt: "DESC" }, // 👈 apunta a createdAt (mapeado a createdat)
-    });
+    return this.repo.findByUserAndDates(user_id, fechaInicio, fechaFin);
   }
 }

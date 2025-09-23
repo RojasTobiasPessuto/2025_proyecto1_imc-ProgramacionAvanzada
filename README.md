@@ -188,3 +188,28 @@ Justificación: si no se usan features específicas de Postgres y priorizamos el
 - Capturas de conteos antes/después de la migración.
 - Logs de consola del script mostrando cantidades migradas.
 - Pruebas de API contra el backend con MySQL (crear usuario, login, crear/listar IMC).
+
+## Tercera entrega
+Para esta entrega tuvimos como desafió agregar estadísticas para el usuario. En este caso nos basamos en poder mostrar:
+- La evolución del IMC y/o peso a lo largo del tiempo, basado en los cálculos almacenados.
+- Implementar consultas agregadas para calcular métricas como promedio, variación y conteo de cálculos por categoría.
+
+En este caso, utilizamos el framework de Chart.js para poder hacer la visualización de estadísticas ya que Metabase daba la opción de usarlo gratis pero por 14 días, por lo que optamos por la opción gratuita sin tener riesgos a futuro. 
+A continuación les dejamos imagenes de como quedaron las estadísticas dentro del usuario tizi123@gmail.com que fue el mostrado en la presentación anterior
+Para generar todas estas estadísticas, generamos 100 cálculos dentro de la base de datos para poder tener más instancias a lo largo de los días. Lo hicimos desde Junio 2025 hasta Diciembre 2025.
+
+
+## Evolución peso e IMC 
+![Evolución de peso e IMC a lo largo del tiempo](./images/estadisticas.png)
+## Evolución peso e IMC con fechas filtradas
+![Evolución de peso e IMC a lo largo del tiempo con filtrado de fechas (septiembre y octubre)](./images/estadisticas_filtro.png)
+## Promedio mensual de IMC
+![Promedio mensual de IMC](./images/promedio_mensual.png)
+## Promedio mensual de IMC con fechas filtradas
+![Promedio mensual de IMC con fechas filtradas (septiembre y octubre)](./images/promedio_mensual_filtro.png)
+## Distribución y Variación 
+![Proemedio de la distribución y variación por categorias y meses](./images/distribucion_y_variacion_promedio.png)
+
+
+
+
