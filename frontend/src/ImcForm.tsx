@@ -39,7 +39,6 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
 
     const alturaNum = parseFloat(altura);
     const pesoNum = parseFloat(peso);
-
     const nuevosErrores: string[] = [];
 
     // Validaciones

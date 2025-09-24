@@ -41,12 +41,7 @@ describe("ImcService", () => {
     expect(service).toBeDefined();
   });
 
-<<<<<<< HEAD
   it("debe calcular el IMC correctamente", async () => {
-=======
-  // Casos de cálculo de IMC
-  it("should calculate IMC correctly (Normal)", async () => {
->>>>>>> origenISW/tobias-Programacion
     const dto: CalcularImcDto = { altura: 1.75, peso: 70, user_id: 1 };
     const result = await service.calcularYGuardar(dto);
 

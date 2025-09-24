@@ -1,3 +1,4 @@
+//App.tsx
 import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
@@ -6,6 +7,8 @@ import ImcHistorial from './components/ImcHistorial';
 import Login from './components/Login';
 import Register from './components/Register';
 import Estadisticas from './components/Estadisticas';
+import { ImcResult } from './imcService';
+
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -16,11 +19,6 @@ export interface ImcRecord {
   imc: number;
   categoria: string;
   createdAt: string;
-}
-
-export interface ImcResult {
-  imc: number;
-  categoria: string;
 }
 
 export default function App() {
