@@ -1,5 +1,6 @@
+//imcHistorial.tsx
 import { useState, useMemo } from "react";
-import { ImcRecord } from '../App';
+import { ImcRecord } from '../../App';
 
 
 interface ImcHistorialProps {

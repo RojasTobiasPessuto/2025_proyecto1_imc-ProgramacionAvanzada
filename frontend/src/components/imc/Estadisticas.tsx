@@ -1,3 +1,4 @@
+//Estadisticas.tsx
 import { useMemo, useState } from "react";
 import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
 import { useQuery } from "@tanstack/react-query";

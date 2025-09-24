@@ -3,10 +3,10 @@ import { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import ImcForm from './ImcForm';
-import ImcHistorial from './components/ImcHistorial';
-import Login from './components/Login';
-import Register from './components/Register';
-import Estadisticas from './components/Estadisticas';
+import ImcHistorial from './components/imc/ImcHistorial';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Estadisticas from './components/imc/Estadisticas';
 import { ImcResult } from './imcService';
 
 

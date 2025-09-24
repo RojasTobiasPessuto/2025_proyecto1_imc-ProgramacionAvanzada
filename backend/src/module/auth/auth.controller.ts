@@ -1,3 +1,4 @@
+//auth.controller.ts
 import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 

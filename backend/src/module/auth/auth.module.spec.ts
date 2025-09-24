@@ -1,3 +1,4 @@
+//auth.module.spec.ts
 import { Test } from '@nestjs/testing';
 import { AuthModule } from './auth.module';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -15,8 +16,4 @@ describe('AuthModule', () => {
     const module = moduleRef.get<AuthModule>(AuthModule);
     expect(module).toBeInstanceOf(AuthModule);
   });
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> origenISW/tobias-Programacion

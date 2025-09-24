@@ -1,3 +1,4 @@
+//imcForm.tsx
 import React, { useState } from "react";
 import { calculateIMC, ImcResult } from "./imcService"; // importamos el service
 

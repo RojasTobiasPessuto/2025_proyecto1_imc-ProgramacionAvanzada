@@ -1,3 +1,5 @@
+
+//imc-record.entity.ts
 import {
   Entity,
   PrimaryGeneratedColumn,

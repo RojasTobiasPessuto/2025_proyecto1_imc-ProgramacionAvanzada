@@ -1,4 +1,5 @@
 
+//imcService.ts
 import axios from "axios";
 // Obtenemos la URL base de la API desde las variables de entorno
 const API = import.meta.env.VITE_API_URL;
