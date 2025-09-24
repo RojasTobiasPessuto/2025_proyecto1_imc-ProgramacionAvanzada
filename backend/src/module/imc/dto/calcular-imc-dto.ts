@@ -1,7 +1,8 @@
 //calcualar-imc-dto.ts
 // src/module/imc/dto/calcular-imc-dto.ts
-import { IsNumber, IsInt, Min } from 'class-validator';
+import { IsNumber, IsInt, Min, IsString } from 'class-validator';
 import { Type } from 'class-transformer';
+import { ObjectId } from 'mongodb';
 
 export class CalcularImcDto {
   @Type(() => Number)
@@ -14,8 +15,6 @@ export class CalcularImcDto {
   @Min(1)
   peso: number;
 
-  @Type(() => Number)
-  @IsInt()
-  @Min(1)
-  user_id: number;
+  @IsString()
+  user_id: string;// se valida que sea string, luego lo convertís a ObjectId en el service
 }

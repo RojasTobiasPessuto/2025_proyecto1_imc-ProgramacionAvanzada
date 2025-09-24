@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ImcModule } from './module/imc/imc.module';
 import { User } from './module/imc/entities/user.entity';
@@ -11,23 +10,18 @@ import { EstadisticasModule } from './module/estadisticas/estadisticas.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
-      type: 'mysql',
-      ...(process.env.DATABASE_URL || process.env.MYSQL_URL
-        ? { url: process.env.DATABASE_URL || process.env.MYSQL_URL }
-        : {
-            host: process.env.DB_HOST || process.env.MYSQLHOST,
-            port: parseInt(process.env.DB_PORT || process.env.MYSQLPORT || '3306', 10),
-            username: process.env.DB_USER || process.env.MYSQLUSER,
-            password: process.env.DB_PASS || process.env.MYSQLPASSWORD,
-            database: process.env.DB_NAME || process.env.MYSQLDATABASE,
-          }),
-      ...(process.env.DB_SSL === 'true' ? { ssl: { rejectUnauthorized: true } } : {}),
+      type: 'mongodb',
+      host: process.env.MONGOHOST,
+      port: parseInt(process.env.MONGOPORT || '27017', 10),
+      username: process.env.MONGOUSER,
+      password: process.env.MONGOPASSWORD,
+      database: process.env.MONGODATABASE,
+      authSource: 'admin',
+      ssl: false, // Railway suele manejar conexión interna, probá primero así
       entities: [User, ImcRecord],
-      autoLoadEntities: true,
-      synchronize: false,
-    }),
+      synchronize: true, // ⚠️ activar mientras probás, luego poner en false
+    }),    
     AuthModule,
     ImcModule,
     EstadisticasModule,

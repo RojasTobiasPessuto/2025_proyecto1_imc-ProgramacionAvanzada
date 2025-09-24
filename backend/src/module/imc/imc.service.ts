@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { CalcularImcDto } from './dto/calcular-imc-dto';
 import { ImcRepository } from './imc.repository';
 import { ImcRecord } from './entities/imc-record.entity';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ImcService {
@@ -29,11 +30,11 @@ export class ImcService {
       alturaM: altura,
       imc: imcRedondeado,
       categoria,
-      user_id,
+      user_id: new ObjectId(user_id), // 👈 conversión acá
     });
 
     return {
-      id: saved.id,
+      id: saved.id.toString(), // ObjectId → string
       imc: saved.imc,
       categoria: saved.categoria,
       createdat: saved.createdAt,
@@ -41,10 +42,10 @@ export class ImcService {
   }
 
   async listarHistorial(
-    user_id: number,
+    user_id: string,
     fechaInicio?: string,
     fechaFin?: string,
   ): Promise<ImcRecord[]> {
-    return this.repo.findByUserAndDates(user_id, fechaInicio, fechaFin);
+    return this.repo.findByUserAndDates(new ObjectId(user_id), fechaInicio, fechaFin);
   }
 }

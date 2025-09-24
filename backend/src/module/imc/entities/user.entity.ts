@@ -1,17 +1,10 @@
-//user.entity.ts
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  OneToMany,
-} from 'typeorm';
-import { ImcRecord } from './imc-record.entity';
+import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
 
-@Entity({ name: 'users' })
+@Entity('users')
 export class User {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @ObjectIdColumn()
+  id: ObjectId;
 
   @Column({ unique: true })
   email: string;
@@ -19,9 +12,6 @@ export class User {
   @Column()
   password: string;
 
-  @CreateDateColumn({ name: 'createdat'})
-  createdAt: Date;  // 👈 en minúsculas para matchear con la DB
-
-  @OneToMany(() => ImcRecord, (imcRecord) => imcRecord.user)
-  imcRecords: ImcRecord[];
+  @CreateDateColumn()
+  createdAt: Date;
 }

@@ -1,3 +1,4 @@
+//estadisticas.controller.ts
 import { Controller, Get, Query, BadRequestException } from '@nestjs/common';
 import { EstadisticasService } from './estadisticas.service';
 

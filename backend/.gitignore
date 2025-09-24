@@ -42,7 +42,7 @@ lerna-debug.log*
 .env.production.local
 .env.local
 .env.migration
-
+.env_Mongo
 # temp directory
 .temp
 .tmp

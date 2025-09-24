@@ -3,6 +3,7 @@
 import { Injectable } from '@nestjs/common';
 import { Repository, DataSource, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { ImcRecord } from './entities/imc-record.entity';
+import { ObjectId } from 'mongodb';
 
 @Injectable()
 export class ImcRepository extends Repository<ImcRecord> {
@@ -19,26 +20,26 @@ export class ImcRepository extends Repository<ImcRecord> {
   }
 
   async findByUserAndDates(
-    user_id: number,
+    user_id: ObjectId,
     fechaInicio?: string,
     fechaFin?: string,
   ): Promise<ImcRecord[]> {
     const where: any = { user_id };
-
+  
     if (fechaInicio && fechaFin) {
-      where.createdAt = Between(
-        new Date(fechaInicio),
-        new Date(fechaFin + 'T23:59:59'),
-      );
+      where.createdAt = {
+        $gte: new Date(fechaInicio),
+        $lte: new Date(fechaFin + 'T23:59:59'),
+      };
     } else if (fechaInicio) {
-      where.createdAt = MoreThanOrEqual(new Date(fechaInicio));
+      where.createdAt = { $gte: new Date(fechaInicio) };
     } else if (fechaFin) {
-      where.createdAt = LessThanOrEqual(new Date(fechaFin + 'T23:59:59'));
+      where.createdAt = { $lte: new Date(fechaFin + 'T23:59:59') };
     }
-
+  
     return this.find({
       where,
       order: { createdAt: 'DESC' },
     });
-  }
+  }  
 }

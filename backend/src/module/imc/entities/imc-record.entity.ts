@@ -1,40 +1,26 @@
+import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
 
-//imc-record.entity.ts
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  CreateDateColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { User } from './user.entity';
-
-@Entity({ name: 'imc_records' })
+@Entity('imc_records')
 export class ImcRecord {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @ObjectIdColumn()
+  id: ObjectId;
 
-  @Column('numeric', { name: 'pesokg', precision: 5, scale: 2 })
+  @Column()
   pesoKg: number;
 
-  @Column('numeric', { name: 'alturam', precision: 3, scale: 2 })
+  @Column()
   alturaM: number;
 
-  @Column('numeric', { precision: 5, scale: 2 })
+  @Column()
   imc: number;
 
-  @Column({ type: 'varchar', length: 20 })
+  @Column()
   categoria: string;
 
-  @CreateDateColumn({ name: 'createdat'})
-  createdAt: Date; // 👈 en minúsculas igual que la DB
+  @CreateDateColumn()
+  createdAt: Date;
 
-  @Column({ name: 'user_id', nullable: true })
-  user_id: number;
-
-  //@ManyToOne(() => User, user => user.imcRecords, { nullable: true, onDelete: 'SET NULL' })
-@JoinColumn({ name: 'user_id' })   // 👈 Forzamos a usar la columna correcta
-user: User;
-
+  @Column()
+  user_id: ObjectId; // referencia al usuario
 }
