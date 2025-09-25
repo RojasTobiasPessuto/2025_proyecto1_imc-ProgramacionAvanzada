@@ -7,7 +7,13 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.enableCors();
+  app.enableCors({
+    origin: [
+      'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app', // tu front en Vercel
+    ],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
   app.setGlobalPrefix('api');
 
   app.useGlobalPipes(new ValidationPipe({
