@@ -1,13 +1,1307 @@
-//ImcForm.tsx
-import axios from "axios";
-import React, { useState } from "react";
+Tengo este error:
+Enviando datos: Object
+index-C-RtmUYn.js:56 URL: https://superb-benevolence-production-8e0f.up.railway.app/api/auth/register
+register:1 Access to fetch at 'https://superb-benevolence-production-8e0f.up.railway.app/api/auth/register' from origin 'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+superb-benevolence-production-8e0f.up.railway.app/api/auth/register:1  Failed to load resource: net::ERR_FAILEDUnderstand this error
+index-C-RtmUYn.js:56 Register error: TypeError: Failed to fetch
+    at d (index-C-RtmUYn.js:56:32414)
+    at Object.Iy (index-C-RtmUYn.js:37:9841)
+    at zy (index-C-RtmUYn.js:37:9995)
+    at By (index-C-RtmUYn.js:37:10052)
+    at cf (index-C-RtmUYn.js:37:31418)
+    at df (index-C-RtmUYn.js:37:31835)
+    at index-C-RtmUYn.js:37:36863
+    at yu (index-C-RtmUYn.js:40:37153)
+    at md (index-C-RtmUYn.js:37:8978)
+    at yl (index-C-RtmUYn.js:37:33127)
+d @ index-C-RtmUYn.js:56Understand this error
+index-C-RtmUYn.js:56 🔍 Probando URL: https://superb-benevolence-production-8e0f.up.railway.app/api/auth/register
+register:1 Access to fetch at 'https://superb-benevolence-production-8e0f.up.railway.app/api/auth/register' from origin 'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this error
+superb-benevolence-production-8e0f.up.railway.app/api/auth/register:1  Failed to load resource: net::ERR_FAILEDUnderstand this error
+index-C-RtmUYn.js:56 ❌ Error en test: TypeError: Failed to fetch
+    at onClick (index-C-RtmUYn.js:56:35228)
+    at Object.Iy (index-C-RtmUYn.js:37:9841)
+    at zy (index-C-RtmUYn.js:37:9995)
+    at By (index-C-RtmUYn.js:37:10052)
+    at cf (index-C-RtmUYn.js:37:31418)
+    at df (index-C-RtmUYn.js:37:31835)
+    at index-C-RtmUYn.js:37:36863
+    at yu (index-C-RtmUYn.js:40:37153)
+    at md (index-C-RtmUYn.js:37:8978)
+    at yl (index-C-RtmUYn.js:37:33127)
+
+Te doy Contexto para que veas que puede ser:
+
+Variables de la base de datos:
+MONGO_INITDB_ROOT_PASSWORD: DdpzqqZmonuoKdZzHfTUeinvrppMToYW
+MONGO_INITDB_ROOT_USERNAME: mongo
+MONGO_PUBLIC_URL: mongodb://mongo:DdpzqqZmonuoKdZzHfTUeinvrppMToYW@shuttle.proxy.rlwy.net:53685
+MONGO_URL : mongodb://mongo:DdpzqqZmonuoKdZzHfTUeinvrppMToYW@mongodb.railway.internal:27017
+MONGOHOST : mongodb.railway.internal
+MONGOPASSWORD: DdpzqqZmonuoKdZzHfTUeinvrppMToYW
+MONGOPORT: 27017
+MONGOUSER: mongo
+
+Build: Railpack
+
+Backend
+.env
+MONGOHOST=mongodb.railway.internal
+MONGOPORT=27017
+MONGOUSER=mongo
+MONGOPASSWORD=DdpzqqZmonuoKdZzHfTUeinvrppMToYW
+MONGODATABASE=railway
+
+//auth.controller.ts
+import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import { AuthService } from './auth.service';
+
+@Controller('auth')
+export class AuthController {
+  constructor(private readonly authService: AuthService) {}
+
+  @Post('register')
+  async register(@Body() body: { email: string; password: string }) {
+    if (!body.email || !body.password) {
+      throw new BadRequestException('Email y contraseña requeridos');
+    }
+    return this.authService.register(body.email, body.password);
+  }
+
+  @Post('login')
+  async login(@Body() body: { email: string; password: string }) {
+    if (!body.email || !body.password) {
+      throw new BadRequestException('Email y contraseña requeridos');
+    }
+    return this.authService.login(body.email, body.password);
+  }
+}
+
+//auth.module.ts
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthController } from './auth.controller';
+import { AuthService } from './auth.service';
+import { User } from '../imc/entities/user.entity';  // ✅ corregido
+
+@Module({
+  imports: [TypeOrmModule.forFeature([User])],
+  controllers: [AuthController],
+  providers: [AuthService],
+  exports: [AuthService],
+})
+export class AuthModule {}
+
+//auth.service.ts
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../imc/entities/user.entity';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class AuthService {
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
+  ) {}
+
+  async register(email: string, password: string) {
+    const existing = await this.userRepo.findOne({ where: { email } });
+    if (existing) {
+      throw new UnauthorizedException('Email ya registrado');
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+    const user = this.userRepo.create({ email, password: hash });
+    return this.userRepo.save(user);
+  }
+
+  async login(email: string, password: string) {
+    const user = await this.userRepo.findOne({ where: { email } });
+    if (!user) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    return { id: user.id, email: user.email };
+  }
+}
+//calcualar-imc-dto.ts
+// src/module/imc/dto/calcular-imc-dto.ts
+import { IsNumber, IsInt, Min, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ObjectId } from 'mongodb';
+
+export class CalcularImcDto {
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0.3)
+  altura: number;
+
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  peso: number;
+
+  @IsString()
+  user_id: string;// se valida que sea string, luego lo convertís a ObjectId en el service
+}
+import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
+
+@Entity('imc_records')
+export class ImcRecord {
+  @ObjectIdColumn()
+  id: ObjectId;
+
+  @Column()
+  pesoKg: number;
+
+  @Column()
+  alturaM: number;
+
+  @Column()
+  imc: number;
+
+  @Column()
+  categoria: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @Column()
+  user_id: ObjectId; // referencia al usuario
+}
+import { Entity, ObjectIdColumn, Column, CreateDateColumn } from 'typeorm';
+import { ObjectId } from 'mongodb';
+
+@Entity('users')
+export class User {
+  @ObjectIdColumn()
+  id: ObjectId;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column()
+  password: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+}
+import { Controller, Post, Get, Body, Query, BadRequestException } from '@nestjs/common';
+import { ImcService } from './imc.service';
+import { CalcularImcDto } from './dto/calcular-imc-dto';
+import { ObjectId } from 'mongodb';
+
+@Controller('imc')
+export class ImcController {
+  constructor(private readonly imcService: ImcService) {}
+
+  @Post('calcular')
+  async calcular(@Body() dto: CalcularImcDto) {
+    return this.imcService.calcularYGuardar(dto);
+  }
+
+  @Get('historial')
+  async historial(
+    @Query('user_id') user_id: string,
+    @Query('fechaInicio') fechaInicio?: string,
+    @Query('fechaFin') fechaFin?: string
+  ) {
+    if (!user_id || !ObjectId.isValid(user_id)) {
+      throw new BadRequestException('user_id es requerido y debe ser un ObjectId válido');
+    }
+    return this.imcService.listarHistorial(user_id, fechaInicio, fechaFin);
+  }
+}
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ImcService } from './imc.service';
+import { ImcController } from './imc.controller';
+import { User } from './entities/user.entity';
+import { ImcRecord } from './entities/imc-record.entity';
+import { ImcRepository } from './imc.repository';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([User, ImcRecord])],
+  controllers: [ImcController],
+  providers: [ImcService, ImcRepository],
+  exports: [ImcService, ImcRepository],
+})
+export class ImcModule {}
+//imc.repository.ts
+//cajita de consultas a la base
+import { Injectable } from '@nestjs/common';
+import { Repository, DataSource, Between, MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
+import { ImcRecord } from './entities/imc-record.entity';
+import { ObjectId } from 'mongodb';
+
+@Injectable()
+export class ImcRepository extends Repository<ImcRecord> {
+  constructor(private dataSource: DataSource) { // representa la conexión a la BD
+    super(ImcRecord, dataSource.createEntityManager());
+  }
+
+
+  //Es un helper para guardar un nuevo cálculo de IMC en la base.
+  //Recibe un objeto parcial (peso, altura, user_id, etc.), y usa el save heredado de Repository.
+  //Devuelve el registro guardado (con id, createdAt, etc.).
+  async saveRecord(record: Partial<ImcRecord>): Promise<ImcRecord> {
+    return this.save(record);
+  }
+
+  async findByUserAndDates(
+    user_id: ObjectId,
+    fechaInicio?: string,
+    fechaFin?: string,
+  ): Promise<ImcRecord[]> {
+    const where: any = { user_id };
+  
+    if (fechaInicio && fechaFin) {
+      where.createdAt = {
+        $gte: new Date(fechaInicio),
+        $lte: new Date(fechaFin + 'T23:59:59'),
+      };
+    } else if (fechaInicio) {
+      where.createdAt = { $gte: new Date(fechaInicio) };
+    } else if (fechaFin) {
+      where.createdAt = { $lte: new Date(fechaFin + 'T23:59:59') };
+    }
+  
+    return this.find({
+      where,
+      order: { createdAt: 'DESC' },
+    });
+  }  
+}
+//imc.service.ts
+import { Injectable } from '@nestjs/common';
+import { CalcularImcDto } from './dto/calcular-imc-dto';
+import { ImcRepository } from './imc.repository';
+import { ImcRecord } from './entities/imc-record.entity';
+import { ObjectId } from 'mongodb';
+
+@Injectable()
+export class ImcService {
+  constructor(private readonly repo: ImcRepository) {}
+
+  private categorizar(imc: number): string {
+    if (imc < 18.5) return 'Bajo peso';
+    if (imc < 25) return 'Normal';
+    if (imc < 30) return 'Sobrepeso';
+    return 'Obesidad';
+  }
+
+  async calcularYGuardar(
+    data: CalcularImcDto,
+  ): Promise<{ id: string; imc: number; categoria: string; createdat: Date }> {
+    const { altura, peso, user_id } = data;
+    const imc = peso / (altura * altura);
+    const imcRedondeado = Math.round(imc * 100) / 100;
+
+    const categoria = this.categorizar(imcRedondeado);
+
+    const saved = await this.repo.saveRecord({
+      pesoKg: peso,
+      alturaM: altura,
+      imc: imcRedondeado,
+      categoria,
+      user_id: new ObjectId(user_id), // 👈 conversión acá
+    });
+
+    return {
+      id: saved.id.toString(), // ObjectId → string
+      imc: saved.imc,
+      categoria: saved.categoria,
+      createdat: saved.createdAt,
+    };
+  }
+
+  async listarHistorial(
+    user_id: string,
+    fechaInicio?: string,
+    fechaFin?: string,
+  ): Promise<ImcRecord[]> {
+    return this.repo.findByUserAndDates(new ObjectId(user_id), fechaInicio, fechaFin);
+  }
+}
+import { Controller, Get } from '@nestjs/common';
+import { AppService } from './app.service';
+
+@Controller()
+export class AppController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get()
+  getHello(): string {
+    return this.appService.getHello();
+  }
+}
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { ImcModule } from './module/imc/imc.module';
+import { User } from './module/imc/entities/user.entity';
+import { ImcRecord } from './module/imc/entities/imc-record.entity';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './module/auth/auth.module';
+import { EstadisticasModule } from './module/estadisticas/estadisticas.module';
+
+@Module({
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mongodb',
+      host: process.env.MONGOHOST,
+      port: parseInt(process.env.MONGOPORT || '27017', 10),
+      username: process.env.MONGOUSER,
+      password: process.env.MONGOPASSWORD,
+      database: process.env.MONGODATABASE,
+      authSource: 'admin',
+      ssl: false, // Railway suele manejar conexión interna, probá primero así
+      entities: [User, ImcRecord],
+      synchronize: true, // ⚠️ activar mientras probás, luego poner en false
+    }),    
+    AuthModule,
+    ImcModule,
+    EstadisticasModule,
+  ],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+// src/app.service.ts
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AppService {
+  getHello(): string {
+    return 'Hello World!';
+  }
+}
+// main.ts
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+
+  // Configuración de CORS para producción
+  const allowedOrigins = [
+    'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app',
+    'http://localhost:5173', // Para desarrollo local
+  ];
+
+  app.enableCors({
+    origin: (origin, callback) => {
+      // Permitir solicitudes sin 'origin' (como aplicaciones móviles o curl)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Authorization'],
+    credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+  });
+
+  app.setGlobalPrefix('api');
+
+  app.useGlobalPipes(new ValidationPipe({
+    transform: true,
+    whitelist: true,
+    forbidNonWhitelisted: true,
+  }));
+
+  const port = process.env.PORT || 3000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Backend running on http://0.0.0.0:${port}`);
+}
+bootstrap();
+
+Frontend:
+
+.env
+VITE_API_URL=https://superb-benevolence-production-8e0f.up.railway.app
+
+//Login.tsx
+import React, { useState } from 'react';
+
+const API = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
+
+// --- Iconos SVG ---
+const UserIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+);
+
+const LockIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+);
+
+// --- Componente de Login ---
+interface LoginProps {
+  onLogin: (userData: any) => void;
+}
+
+export default function Login({ onLogin }: LoginProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    try {
+      const res = await fetch(`${API}/api/auth/login`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password }),
+});
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error al iniciar sesión');
+      localStorage.setItem('user_id', data.id);
+      onLogin(data);
+    } catch (err: any) {
+      setError(err.message);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1a1a3d] to-[#3a0ca3] flex items-center justify-center font-sans p-4 text-white">
+      <div className="w-full max-w-md">
+        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 space-y-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold">Iniciar Sesión</h2>
+            <p className="text-slate-400 mt-2">Bienvenido de nuevo</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <UserIcon />
+              </div>
+              <input
+                type="email"
+                placeholder="Correo electrónico"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
+              />
+            </div>
+
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <LockIcon />
+                </div>
+                <input
+                    type="password"
+                    placeholder="Contraseña"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
+                />
+            </div>
+            
+            {error && <p className="text-red-400 text-sm text-center !mt-4">{error}</p>}
+
+            <button type="submit" className="w-full bg-purple-600 font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-400/50 transition-transform transform hover:scale-105 shadow-lg shadow-purple-500/30">
+              Entrar
+            </button>
+          </form>
+
+          <div className="text-center text-slate-400">
+            <p>¿No tienes cuenta?{' '}
+              <a href="/register" className="font-semibold text-purple-400 hover:text-purple-300 transition">
+                Registrar cuenta
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+//Register.tsx
+import React, { useState } from 'react';
+
+const API = import.meta.env.VITE_API_URL?.replace(/\/+$/, '');
+
+// --- Iconos SVG ---
+const UserIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+);
+
+const LockIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+    </svg>
+);
+
+// --- Componente de Registro ---
+export default function Register() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setSuccess('');
+    try {
+      console.log('Enviando datos:', { email, password });
+      console.log('URL:', `${API}/api/auth/register`);
+
+      const res = await fetch(`${API}/api/auth/register`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ email, password }),
+});
+
+      
+      console.log('Response status:', res.status);
+      console.log('Response headers:', res.headers);
+      
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.log('Error response:', errorText);
+        throw new Error(`Error ${res.status}: ${errorText}`);
+      }
+      
+      const data = await res.json();
+      console.log('Success response:', data);
+      setSuccess('¡Usuario registrado! Ahora puedes iniciar sesión.');
+      setEmail('');
+      setPassword('');
+    } catch (err: any) {
+      console.error('Register error:', err);
+      setError(err.message || 'Error al registrar el usuario');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1a1a3d] to-[#3a0ca3] flex items-center justify-center font-sans p-4 text-white">
+      <div className="w-full max-w-md">
+        <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-8 space-y-6">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold">Crear una Cuenta</h2>
+            <p className="text-slate-400 mt-2">Únete a nosotros</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+             <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <UserIcon />
+                </div>
+                <input
+                    type="email"
+                    placeholder="Correo electrónico"
+                    value={email}
+                    onChange={e => setEmail(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
+                />
+            </div>
+
+            <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <LockIcon />
+                </div>
+                <input
+                    type="password"
+                    placeholder="Contraseña"
+                    value={password}
+                    onChange={e => setPassword(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
+                />
+            </div>
+
+            {error && <p className="text-red-400 text-sm text-center !mt-4">{error}</p>}
+            {success && <p className="text-green-400 text-sm text-center !mt-4">{success}</p>}
+            
+            <button type="submit" className="w-full bg-purple-600 font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-400/50 transition-transform transform hover:scale-105 shadow-lg shadow-purple-500/30">
+              Registrar
+            </button>
+            <button
+  type="button"
+  className="w-full mt-2 bg-blue-600 font-semibold py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-400/50"
+  onClick={async () => {
+    const url = `${API}/api/auth/register`;
+    const testBody = { email: `test${Date.now()}@example.com`, password: "123456" };
+    try {
+      console.log("🔍 Probando URL:", url);
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(testBody),
+      });
+      console.log("🔍 Status:", res.status);
+      const text = await res.text();
+      console.log("🔍 Respuesta completa:", text);
+      alert(`Status ${res.status}: ${text}`);
+    } catch (err) {
+      console.error("❌ Error en test:", err);
+      alert(`Error en test: ${err}`);
+    }
+  }}
+>
+  🚀 Testear conexión
+</button>
+
+          </form>
+
+          <div className="text-center text-slate-400">
+            <p>¿Ya tienes una cuenta?{' '}
+              <a href="/" className="font-semibold text-purple-400 hover:text-purple-300 transition">
+                Iniciar sesión
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+//Estadisticas.tsx
+import { useMemo, useState } from "react";
+import { Line, Bar, Pie, PolarArea } from "react-chartjs-2";
+import { useQuery } from "@tanstack/react-query";
+
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale,
+} from "chart.js";
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  BarElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  ArcElement,
+  RadialLinearScale
+);
+
+interface ImcRecord {
+  id: string;
+  pesoKg: number;
+  alturaM: number;
+  imc: number;
+  categoria: string;
+  createdAt: string;
+  user_id: number;
+}
+
+interface EstadisticasProps {
+  userId: number;
+}
+
+const API = import.meta.env.VITE_API_URL_BACK || import.meta.env.VITE_API_URL;
+
+export default function Estadisticas({ userId }: EstadisticasProps) {
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+
+  const { data: records = [], isLoading } = useQuery<ImcRecord[]>({
+  queryKey: ["estadisticas", userId],
+  queryFn: () =>
+    fetch(`${API}/api/estadisticas/evolucion?user_id=${userId}`).then((res) =>
+      res.json()
+    ),
+  });
+
+  // Filtrar y ordenar
+  const sorted = useMemo(() => {
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+
+    return [...records]
+      .filter((r) => {
+        const d = new Date(r.createdAt);
+        if (start && d < start) return false;
+        if (end && d > end) return false;
+        return true;
+      })
+      .sort(
+        (a, b) =>
+          new Date(a.createdAt).getTime() -
+          new Date(b.createdAt).getTime()
+      );
+  }, [records, startDate, endDate]);
+
+  // Labels en el eje X
+  const labels = sorted.map((r) =>
+    new Date(r.createdAt).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "2-digit",
+    })
+  );
+
+  // Datos para peso e IMC
+  const pesoData = sorted.map((r) => r.pesoKg);
+  const imcData = sorted.map((r) => r.imc);
+
+  // Promedios mensuales
+  const promediosMensuales = useMemo(() => {
+    const agrupados: { [mes: string]: number[] } = {};
+
+    sorted.forEach((r) => {
+      const fecha = new Date(r.createdAt);
+      const mes = fecha.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
+      if (!agrupados[mes]) agrupados[mes] = [];
+      agrupados[mes].push(Number(r.imc));
+    });
+
+    return Object.keys(agrupados).map((mes) => ({
+      mes,
+      promedio:
+        agrupados[mes].reduce((a, b) => a + b, 0) /
+        agrupados[mes].length,
+    }));
+  }, [sorted]);
+
+  // Data para gráfico de líneas
+  const lineData = {
+    labels,
+    datasets: [
+      {
+        label: "Peso (kg)",
+        data: pesoData,
+        borderColor: "rgb(59, 130, 246)", // azul
+        backgroundColor: "rgba(59, 130, 246, 0.5)",
+      },
+      {
+        label: "IMC",
+        data: imcData,
+        borderColor: "rgb(16, 185, 129)", // verde
+        backgroundColor: "rgba(16, 185, 129, 0.5)",
+      },
+    ],
+  };
+
+  // Data para gráfico de barras
+  const barData = {
+    labels: promediosMensuales.map((d) => d.mes),
+    datasets: [
+      {
+        label: "Promedio IMC",
+        data: promediosMensuales.map((d) => d.promedio),
+        backgroundColor: "rgba(75, 192, 192, 0.6)",
+        borderColor: "rgba(75, 192, 192, 1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Conteo por categoría (para Pie)
+  const conteoCategorias = useMemo(() => {
+    const counts: { [cat: string]: number } = {};
+    records.forEach((r: ImcRecord) => {
+      counts[r.categoria] = (counts[r.categoria] || 0) + 1;
+    });
+    return counts;
+  }, [records]);
+
+  const pieData = {
+    labels: Object.keys(conteoCategorias),
+    datasets: [
+      {
+        label: "Cantidad",
+        data: Object.values(conteoCategorias),
+        backgroundColor: [
+          "rgba(16, 185, 129, 0.6)", // verde
+          "rgba(59, 130, 246, 0.6)", // azul
+          "rgba(250, 204, 21, 0.6)", // amarillo
+          "rgba(239, 68, 68, 0.6)", // rojo
+          "rgba(148, 163, 184, 0.6)", // gris
+        ],
+        borderColor: "rgba(255,255,255,1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  // Variación mensual (para Polar Area)
+  const variacionMensual = useMemo(() => {
+    const grupos: { [mes: string]: number[] } = {};
+
+    records.forEach((r: ImcRecord) => {
+      const fecha = new Date(r.createdAt);
+      const mes = fecha.toLocaleString("es-ES", {
+        month: "long",
+        year: "numeric",
+      });
+      if (!grupos[mes]) grupos[mes] = [];
+      grupos[mes].push(Number(r.imc));
+    });
+
+    return Object.keys(grupos).map((mes) => {
+      const valores = grupos[mes];
+      const media =
+        valores.reduce((a, b) => a + b, 0) / valores.length;
+      const desviacionPromedio =
+        valores.reduce((a, b) => a + Math.abs(b - media), 0) /
+        valores.length;
+      return { mes, desviacion: desviacionPromedio };
+    });
+  }, [records]);
+
+  const polarData = {
+    labels: variacionMensual.map((d) => d.mes),
+    datasets: [
+      {
+        label: "Variación Promedio (IMC)",
+        data: variacionMensual.map((d) => d.desviacion),
+        backgroundColor: [
+          "rgba(59, 130, 246, 0.6)",
+          "rgba(16, 185, 129, 0.6)",
+          "rgba(250, 204, 21, 0.6)",
+          "rgba(239, 68, 68, 0.6)",
+          "rgba(148, 163, 184, 0.6)",
+        ],
+        borderColor: "rgba(255,255,255,1)",
+        borderWidth: 1,
+      },
+    ],
+  };
+
+  if (isLoading)
+    return <p className="text-slate-400">Cargando estadísticas...</p>;
+  if (!records || records.length === 0) {
+    return (
+      <p className="text-slate-400">
+        No hay datos para mostrar estadísticas.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <h2 className="text-2xl font-semibold mb-4">Estadísticas</h2>
+
+      {/* Filtros */}
+      <div className="flex gap-4 mb-6">
+        <input
+          type="date"
+          value={startDate}
+          onChange={(e) => setStartDate(e.target.value)}
+          className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
+        />
+        <input
+          type="date"
+          value={endDate}
+          onChange={(e) => setEndDate(e.target.value)}
+          className="px-3 py-2 rounded bg-slate-800 border border-slate-700"
+        />
+      </div>
+
+      {/* Gráfico de líneas */}
+      <div className="mt-8">
+        <h3 className="text-2xl font-semibold mb-4 text-center">
+          Evolución de Peso e IMC
+        </h3>
+        <Line data={lineData} />
+      </div>
+
+      {/* Gráfico de barras */}
+      {promediosMensuales.length > 0 && (
+        <div className="mt-8">
+          <h3 className="text-2xl font-semibold mb-4 text-center">
+            Promedio Mensual de IMC
+          </h3>
+          <Bar data={barData} />
+        </div>
+      )}
+
+      {/* Pie y Polar Area juntos */}
+      {Object.keys(conteoCategorias).length > 0 &&
+        variacionMensual.length > 0 && (
+          <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Distribución por Categoría Total
+              </h3>
+              <Pie data={pieData} />
+            </div>
+            <div>
+              <h3 className="text-2xl font-semibold mb-4 text-center">
+                Variación Promedio Mensual (IMC)
+              </h3>
+              <PolarArea data={polarData} />
+            </div>
+          </div>
+        )}
+    </div>
+  );
+}
+//imcHistorial.tsx
+import { useState, useMemo } from "react";
+import { ImcRecord } from '../../App';
+
+
+interface ImcHistorialProps {
+  records: ImcRecord[];
+  loading: boolean;
+}
+
+// Iconos SVG
+
+
+const ClearIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="18" y1="6" x2="6" y2="18"></line>
+    <line x1="6" y1="6" x2="18" y2="18"></line>
+  </svg>
+);
+
+export default function ImcHistorial({ records, loading }: ImcHistorialProps) {
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
+  // Filtrar historial por fechas
+  const filteredRecords = useMemo(() => {
+    if (!startDate && !endDate) return records;
+
+    const start = startDate ? new Date(startDate) : null;
+    const end = endDate ? new Date(endDate) : null;
+    
+    // Ajustar la hora para incluir el día completo
+    if(start) start.setHours(0, 0, 0, 0);
+    if(end) end.setHours(23, 59, 59, 999);
+
+    return records.filter(record => {
+      const recordDate = new Date(record.createdAt);
+      if (start && end) return recordDate >= start && recordDate <= end;
+      if (start) return recordDate >= start;
+      if (end) return recordDate <= end;
+      return true;
+    });
+  }, [records, startDate, endDate]);
+
+  const clearFilters = () => {
+    setStartDate('');
+    setEndDate('');
+  };
+
+  const getCategoryColor = (categoria: string) => {
+    switch (categoria) {
+      case 'Normal': return 'text-green-400';
+      case 'Bajo peso': return 'text-blue-400';
+      case 'Sobrepeso': return 'text-yellow-400';
+      default: return categoria.includes('Obesidad') ? 'text-red-400' : 'text-slate-400';
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h2 className="font-semibold text-2xl">Historial de cálculos</h2>
+        <div className="flex items-center gap-4 flex-wrap">
+          <input 
+            type="date" 
+            value={startDate} 
+            onChange={(e) => setStartDate(e.target.value)} 
+            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+          />
+          <span className="text-slate-400">-</span>
+          <input 
+            type="date" 
+            value={endDate} 
+            onChange={(e) => setEndDate(e.target.value)} 
+            className="px-3 py-2 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none"
+          />
+          <button 
+            onClick={clearFilters} 
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700/80 rounded-lg hover:bg-slate-600/80 transition"
+          >
+            <ClearIcon/> Limpiar
+          </button>
+        </div>
+      </div>
+      
+      <div className="h-64 overflow-y-auto pr-2">
+        {loading ? (
+          <div className="flex items-center justify-center h-full">
+            <div className="text-slate-400">Cargando...</div>
+          </div>
+        ) : filteredRecords.length > 0 ? (
+          <table className="w-full text-left">
+            <thead className="sticky top-0 bg-slate-900/60 backdrop-blur-sm">
+              <tr>
+                {['Fecha', 'Peso', 'Altura', 'IMC', 'Categoría'].map(h => (
+                  <th key={h} className="py-3 px-3 font-semibold text-slate-300 border-b border-slate-700 text-sm">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+  {filteredRecords.map((r) => (
+    <tr key={r.id} className="hover:bg-slate-800/50 transition-colors">
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {new Date(r.createdAt).toLocaleDateString('es-ES')}
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {r.pesoKg} kg
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm text-slate-400">
+        {r.alturaM} m
+      </td>
+      <td className="py-3 px-3 border-b border-slate-800 text-sm font-bold text-white">
+        {Number(r.imc).toFixed(2)}
+      </td>
+      <td className={`py-3 px-3 border-b border-slate-800 text-sm font-semibold ${getCategoryColor(r.categoria)}`}>
+        {r.categoria}
+      </td>
+    </tr>
+  ))}
+</tbody>
+          </table>
+        ) : (
+          <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
+            <p className="font-medium text-lg">No hay datos que mostrar</p>
+            <p className="text-sm mt-1">Prueba a cambiar los filtros o añade un nuevo cálculo.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+//App.tsx
+import { useEffect, useRef, useState } from 'react';
+import axios from 'axios';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ImcForm from './ImcForm';
+import ImcHistorial from './components/imc/ImcHistorial';
+import Login from './components/auth/Login';
+import Register from './components/auth/Register';
+import Estadisticas from './components/imc/Estadisticas';
+import { ImcResult } from './imcService';
+
 
 const API = import.meta.env.VITE_API_URL;
 
-interface ImcResult {
+export interface ImcRecord {
+  id: number;
+  pesoKg: number;
+  alturaM: number;
   imc: number;
   categoria: string;
+  createdAt: string;
 }
+
+export default function App() {
+  const [records, setRecords] = useState<ImcRecord[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<ImcResult | null>(null);
+  const [user, setUser] = useState(() => {
+    // Intenta recuperar el usuario del localStorage
+    const saved = localStorage.getItem('user');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const fetchRecords = async () => {
+  setLoading(true);
+  try {
+    // Usa el id del usuario guardado en el estado
+    if (!user || !user.id) {
+      throw new Error('No hay usuario logueado');
+    }
+    const response = await axios.get(`${API}/api/imc/historial`, {
+      params: { user_id: user.id }
+    });
+    setRecords(response.data);
+  } catch (error) {
+    console.error('Error fetching records:', error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  useEffect(() => {
+    if (user) fetchRecords();
+  }, [user]);
+
+  // Función para manejar login exitoso
+  const handleLogin = (userData: any) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  };
+
+  // Función para logout
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // Estado y refs para el menú de perfil
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement | null>(null);
+
+  // Cierra el dropdown si se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Iconos SVG
+  const UserIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+      <circle cx="12" cy="7" r="4"></circle>
+    </svg>
+  );
+
+  const LogoutIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+      <polyline points="16 17 21 12 16 7"></polyline>
+      <line x1="21" y1="12" x2="9" y2="12"></line>
+    </svg>
+  );
+
+  // Página principal protegida
+  const MainPage = () => (
+    <div className="min-h-screen bg-gradient-to-br from-[#111827] via-[#1a1a3d] to-[#3a0ca3] flex items-center justify-center font-sans p-4 text-white" style={{ position: 'relative' }}>
+      {/* Menú de perfil superior derecho */}
+      {user && (
+        <div ref={profileRef} style={{ position: 'absolute', top: 16, right: 16, zIndex: 20 }}>
+          <button
+            onClick={() => setIsProfileOpen(!isProfileOpen)}
+            style={{
+              padding: 8,
+              borderRadius: 9999,
+              background: 'rgba(15,23,42,0.6)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              color: 'white',
+            }}
+            aria-label="Abrir menú de perfil"
+          >
+            <UserIcon />
+          </button>
+          {isProfileOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              marginTop: 8,
+              width: 256,
+              background: 'rgba(15,23,42,0.85)',
+              backdropFilter: 'blur(8px)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 12,
+              boxShadow: '0 10px 25px rgba(0,0,0,0.4)',
+              padding: 16,
+            }}>
+              <div style={{ borderBottom: '1px solid #334155', paddingBottom: 12, marginBottom: 12 }}>
+                <p style={{ fontSize: 12, color: '#94a3b8' }}>Sesión iniciada como:</p>
+                <p style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  padding: '8px 12px',
+                  fontSize: 14,
+                  color: '#fca5a5',
+                  background: 'transparent',
+                  border: 'none',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                }}
+              >
+                <LogoutIcon /> Cerrar Sesión
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      <div className="w-full max-w-6xl space-y-8">
+      <header className="text-center">
+        <h1 className="text-5xl font-bold">Calculadora de IMC</h1>
+      </header>
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <ImcForm
+          onSuccess={fetchRecords}
+          resultado={resultado}
+          setResultado={setResultado}
+        />
+      </div>
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <ImcHistorial records={records} loading={loading} />
+      </div>
+
+      {/* 👇 Nuevo bloque de estadísticas */}
+      <div className="bg-slate-900/40 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl p-6 md:p-8">
+        <Estadisticas userId={user.id} />
+      </div>
+    </div>
+  </div>
+);
+
+
+  return (
+    <Router>
+      <Routes>
+        <Route path="/login" element={user ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+        <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
+        <Route path="/" element={user ? <MainPage /> : <Navigate to="/login" />} />
+        {/* Puedes agregar más rutas protegidas aquí */}
+      </Routes>
+    </Router>
+  );
+}
+//imcForm.tsx
+import React, { useState } from "react";
+import { calculateIMC, ImcResult } from "./imcService"; // importamos el service
 
 interface ImcFormProps {
   onSuccess: () => void;
@@ -17,7 +1311,17 @@ interface ImcFormProps {
 
 // Icono de calculadora
 const CalculatorIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
     <line x1="8" y1="6" x2="16" y2="6"></line>
     <line x1="16" y1="10" x2="16" y2="14"></line>
@@ -33,14 +1337,13 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
   const [errores, setErrores] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
+    e.preventDefault();
 
     const alturaNum = parseFloat(altura);
     const pesoNum = parseFloat(peso);
-
     const nuevosErrores: string[] = [];
 
-    // Validaciones avanzadas
+    // Validaciones
     if (isNaN(alturaNum) || alturaNum <= 0 || alturaNum >= 3) {
       nuevosErrores.push(
         "La altura debe ser un número válido mayor que 0 y menor a 3 metros."
@@ -60,40 +1363,33 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
     }
 
     try {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const user_id = user.id;
-    if (!user_id) {
-      setErrores(['No hay usuario logueado.']);
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const user_id = user.id;
+      if (!user_id) {
+        setErrores(["No hay usuario logueado."]);
+        setResultado(null);
+        return;
+      }
+
+      const data = await calculateIMC(alturaNum, pesoNum, user_id); // usamos el service
+      setResultado(data);
+      setErrores([]);
+      onSuccess();
+    } catch (err: any) {
+      setErrores([err.message || "Error inesperado al calcular el IMC."]);
       setResultado(null);
-      return;
     }
-
-      const response = await axios.post(`${API}/api/imc/calcular`, {
-      altura: alturaNum,
-      peso: pesoNum,
-      user_id,
-    });
-    setResultado(response.data); // Luego muestra el resultado
-    setErrores([]);
-    onSuccess(); // Primero recarga el historial
-
-    // Opcional: limpiar campos
-    // setAltura("");
-    // setPeso("");
-  } catch (err) {
-    setErrores([
-      "Error al calcular el IMC. Verifica si el backend está corriendo.",
-    ]);
-    setResultado(null);
-  }
-};
+  };
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       {/* Formulario */}
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label htmlFor="altura" className="block text-sm font-medium text-slate-300 mb-2">
+          <label
+            htmlFor="altura"
+            className="block text-sm font-medium text-slate-300 mb-2"
+          >
             Altura (m)
           </label>
           <input
@@ -107,9 +1403,12 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
             className="w-full px-4 py-3 bg-slate-800/60 border border-slate-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition"
           />
         </div>
-        
+
         <div>
-          <label htmlFor="peso" className="block text-sm font-medium text-slate-300 mb-2">
+          <label
+            htmlFor="peso"
+            className="block text-sm font-medium text-slate-300 mb-2"
+          >
             Peso (kg)
           </label>
           <input
@@ -134,8 +1433,8 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
           </div>
         )}
 
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           className="w-full flex items-center justify-center gap-2 bg-purple-600 font-semibold py-3 px-6 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-400/50 transition-transform transform hover:scale-105 shadow-lg shadow-purple-500/30"
         >
           <CalculatorIcon /> Calcular IMC
@@ -144,27 +1443,92 @@ function ImcForm({ onSuccess, resultado, setResultado }: ImcFormProps) {
 
       {/* Resultado */}
       <div className="flex items-center justify-center">
-  {resultado ? (
-    <div className="text-center bg-slate-800/50 p-6 rounded-lg w-full">
-      <p className="text-lg text-slate-300 mb-4">Tu resultado más reciente:</p>
-      <p className="text-6xl font-bold text-white my-2">{resultado.imc.toFixed(2)}</p>
-      <p className={`text-2xl font-semibold ${
-        resultado.categoria === 'Normal' ? 'text-green-400' :
-        resultado.categoria === 'Bajo peso' ? 'text-blue-400' :
-        resultado.categoria === 'Sobrepeso' ? 'text-yellow-400' :
-        resultado.categoria.includes('Obesidad') ? 'text-red-400' : 'text-slate-400'
-      }`}>
-        {resultado.categoria}
-      </p>
-    </div>
-  ) : (
-    <div className="text-center text-slate-400 p-6">
-      <p>El resultado de tu cálculo aparecerá aquí.</p>
-    </div>
-  )}
-</div>
+        {resultado ? (
+          <div className="text-center bg-slate-800/50 p-6 rounded-lg w-full">
+            <p className="text-lg text-slate-300 mb-4">
+              Tu resultado más reciente:
+            </p>
+            <p className="text-6xl font-bold text-white my-2">
+              {resultado.imc.toFixed(2)}
+            </p>
+            <p
+              className={`text-2xl font-semibold ${
+                resultado.categoria === "Normal"
+                  ? "text-green-400"
+                  : resultado.categoria === "Bajo peso"
+                  ? "text-blue-400"
+                  : resultado.categoria === "Sobrepeso"
+                  ? "text-yellow-400"
+                  : resultado.categoria.includes("Obesidad")
+                  ? "text-red-400"
+                  : "text-slate-400"
+              }`}
+            >
+              {resultado.categoria}
+            </p>
+          </div>
+        ) : (
+          <div className="text-center text-slate-400 p-6">
+            <p>El resultado de tu cálculo aparecerá aquí.</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
 
-export default ImcForm;
+export default ImcForm;
+
+//imcService.ts
+import axios from "axios";
+// Obtenemos la URL base de la API desde las variables de entorno
+const API = import.meta.env.VITE_API_URL;
+
+// Definimos la interfaz para el resultado del IMC
+export interface ImcResult {
+  imc: number;        // Valor numérico del IMC calculado
+  categoria: string;  // Categoría según el IMC (ej: "Normal", "Sobrepeso", etc.)
+}
+
+// Función asíncrona que calcula el IMC llamando al backend
+export const calculateIMC = async (
+  altura: number,    // Altura en metros (ej: 1.75)
+  peso: number,      // Peso en kilogramos (ej: 70)
+  user_id: string    // ID del usuario para guardar el registro
+): Promise<ImcResult> => {
+  try {
+    // Realizamos una petición POST al endpoint /imc/calcular
+    const response = await axios.post(`${API}/api/imc/calcular`, {
+      altura,    // Enviamos la altura
+      peso,      // Enviamos el peso
+      user_id,   // Enviamos el ID del usuario
+    });
+    return response.data;  // Retornamos la respuesta del servidor
+  } catch (error) {
+    // En caso de error, lanzamos una excepción con un mensaje descriptivo
+    throw new Error("Error al calcular el IMC. Verifica si el backend está corriendo.");
+  }
+};
+// main.tsx
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.tsx'
+import './index.css'
+
+// 👇 Importamos lo necesario de React Query
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+// Creamos una instancia del cliente de queries
+const queryClient = new QueryClient()
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    {/* 👇 Envolvemos la App con el proveedor */}
+    <QueryClientProvider client={queryClient}>
+      <App />
+    </QueryClientProvider>
+  </React.StrictMode>,
+)
+
+
+
