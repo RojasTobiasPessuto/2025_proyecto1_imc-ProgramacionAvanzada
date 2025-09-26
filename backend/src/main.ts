@@ -8,14 +8,14 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false });
 
   app.enableCors({
-    origin: [
-      'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app',
-      'http://localhost:5173',
-    ],
-    methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization'],
+    origin: true, // permite cualquier origin dinámicamente
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: '*',
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
+  
 
   app.setGlobalPrefix('api');
 
