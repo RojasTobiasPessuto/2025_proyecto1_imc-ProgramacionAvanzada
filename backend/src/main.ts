@@ -1,11 +1,24 @@
+// main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Config simple de CORS
+  // Middleware para responder siempre OPTIONS
+  app.use((req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+      return res.sendStatus(200);
+    }
+    next();
+  });
+
+  // Config global de CORS (por si acaso)
   app.enableCors({
     origin: [
       'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app',
@@ -14,18 +27,6 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization, Accept',
     credentials: true,
-  });
-
-  // 👇 Handler manual para todas las OPTIONS
-  app.use((req, res, next) => {
-    if (req.method === 'OPTIONS') {
-      res.header('Access-Control-Allow-Origin', req.headers.origin);
-      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
-      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-      res.status(200).send();
-    } else {
-      next();
-    }
   });
 
   app.setGlobalPrefix('api');
