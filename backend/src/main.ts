@@ -1,4 +1,3 @@
-// main.ts
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -6,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Config simple de CORS
   app.enableCors({
     origin: [
       'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app',
@@ -14,8 +14,18 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type, Authorization, Accept',
     credentials: true,
-    preflightContinue: false,
-    optionsSuccessStatus: 200, // 👈 asegura que OPTIONS responde OK
+  });
+
+  // 👇 Handler manual para todas las OPTIONS
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', req.headers.origin);
+      res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+      res.status(200).send();
+    } else {
+      next();
+    }
   });
 
   app.setGlobalPrefix('api');
