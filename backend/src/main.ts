@@ -11,7 +11,7 @@ async function bootstrap() {
       'http://localhost:5173',
     ],
     methods: ['GET','HEAD','PUT','PATCH','POST','DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type','Authorization','Accept'],
+    allowedHeaders: ['Content-Type','Authorization','Accept','Origin'],
     credentials: true,
     preflightContinue: false,
     optionsSuccessStatus: 204,
