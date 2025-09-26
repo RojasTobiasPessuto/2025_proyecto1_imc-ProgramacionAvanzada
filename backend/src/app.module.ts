@@ -19,25 +19,18 @@ export class HealthController {
 
 @Module({
   imports: [
-    // app.module.ts
-TypeOrmModule.forRoot({
-  type: 'mongodb',
-  // Usa PUBLIC_URL si está presente (requiere TLS); sino, intenta interno
-  url: process.env.MONGO_PUBLIC_URL
-    ? `${process.env.MONGO_PUBLIC_URL}?authSource=admin`
-    : undefined,
-  host: process.env.MONGO_PUBLIC_URL ? undefined : process.env.MONGOHOST,
-  port: process.env.MONGO_PUBLIC_URL ? undefined : parseInt(process.env.MONGOPORT || '27017', 10),
-  username: process.env.MONGOUSER,
-  password: process.env.MONGOPASSWORD,
-  database: process.env.MONGODATABASE || 'railway',
-  authSource: 'admin',
-  ssl: !!process.env.MONGO_PUBLIC_URL, // TLS solo si usamos la URL pública
-  entities: [User, ImcRecord],
-  synchronize: true,                 // desactiva en prod
-  retryAttempts: 10,                 // <-- reintentos para evitar crash en arranque
-  retryDelay: 3000,
-}),
+    TypeOrmModule.forRoot({
+      type: 'mongodb',
+      url: process.env.MONGO_URL // ej: mongodb://mongo:PASS@mongodb.railway.internal:27017/railway?authSource=admin
+        ?? `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASSWORD}@${process.env.MONGOHOST}:${process.env.MONGOPORT}/${process.env.MONGODATABASE}?authSource=admin`,
+      ssl: false,                 // red interna == sin TLS
+      entities: [User, ImcRecord],
+      synchronize: true,          // desactívalo luego
+      retryAttempts: 10,
+      retryDelay: 3000,
+      // opcional:
+      extra: { directConnection: true, retryWrites: false },
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
