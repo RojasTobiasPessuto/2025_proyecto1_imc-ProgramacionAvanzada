@@ -7,6 +7,15 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './module/auth/auth.module';
 import { EstadisticasModule } from './module/estadisticas/estadisticas.module';
+import { Controller, Get } from '@nestjs/common';
+
+@Controller('health')
+export class HealthController {
+  @Get()
+  ping() {
+    return { ok: true, ts: Date.now() };
+  }
+}
 
 @Module({
   imports: [
