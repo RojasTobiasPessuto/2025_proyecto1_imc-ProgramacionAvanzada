@@ -31,6 +31,9 @@ export class HealthController {
       // opcional:
       extra: { directConnection: true, retryWrites: false },
     }),
+    AuthModule,
+    EstadisticasModule,
+    ImcModule,
   ],
   controllers: [AppController],
   providers: [AppService],
