@@ -8,16 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Configuración de CORS más permisiva temporalmente para depuración
-  app.enableCors({
-    origin: [
-      'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app',
-      'http://localhost:3000',
-    ],
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type, Accept, Authorization',
-    credentials: true,
-  });
-
+  app.enableCors();
   app.setGlobalPrefix('api');
 
   app.useGlobalPipes(new ValidationPipe({
