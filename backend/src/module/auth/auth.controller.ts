@@ -1,8 +1,10 @@
 //auth.controller.ts
-import { Controller, Post, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Body, BadRequestException, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { AuthGuard } from '@nestjs/passport';
 
-@Controller('auth') // 👈 prefijo común
+@Controller('auth')
+@UseGuards(AuthGuard('jwt'))
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
