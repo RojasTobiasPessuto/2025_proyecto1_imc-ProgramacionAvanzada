@@ -9,14 +9,17 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'https://2025-proyecto1-imc-programacion-ava-nu.vercel.app',
-      'http://localhost:5173', // para desarrollo local
+      'http://localhost:5173',
     ],
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    allowedHeaders: 'Content-Type, Authorization, Accept',
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 200, // 👈 asegura que OPTIONS responde OK
   });
 
   app.setGlobalPrefix('api');
+
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,
