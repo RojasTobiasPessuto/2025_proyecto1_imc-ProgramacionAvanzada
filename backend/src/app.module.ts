@@ -21,14 +21,13 @@ export class HealthController {
   imports: [
     TypeOrmModule.forRoot({
       type: 'mongodb',
-      url: process.env.MONGO_URL // ej: mongodb://mongo:PASS@mongodb.railway.internal:27017/railway?authSource=admin
+      url: process.env.MONGO_URL
         ?? `mongodb://${process.env.MONGOUSER}:${process.env.MONGOPASSWORD}@${process.env.MONGOHOST}:${process.env.MONGOPORT}/${process.env.MONGODATABASE}?authSource=admin`,
-      ssl: false,                 // red interna == sin TLS
+      ssl: false,                 
       entities: [User, ImcRecord],
-      synchronize: true,          // desactívalo luego
+      synchronize: true,          // Desactivar 
       retryAttempts: 10,
       retryDelay: 3000,
-      // opcional:
       extra: { directConnection: true, retryWrites: false },
     }),
     AuthModule,
